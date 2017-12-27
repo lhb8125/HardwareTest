@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export PATH=${PATH}:/usr/local/cuda/bin
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda/lib64
+
 CUDASAMPLES="/home/tusimple/HardwareTest/cudaSamples"
 FILENAME="$CUDASAMPLES/7_CUDALibraries/batchCUBLAS/batchCUBLAS.cpp"
 
