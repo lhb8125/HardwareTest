@@ -1,0 +1,5 @@
+﻿1.将HardwareTest文件夹复制到用户根目录下，即/home/tusimple/
+2.打开终端terminal
+3.输入命令：cd /home/tusimple/HardwareTest/ 回车
+4.输入命令：sudo ./test-one-click.sh 回车
+5.双击打开HardwareTest目录下的out.csv文件
