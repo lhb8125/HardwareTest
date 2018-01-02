@@ -65,26 +65,28 @@ def concatelist(sample):
     return res
 
 def prettyprint():
-    fout = open("out.txt", 'w')
+    fout = open("out.csv", 'w')
 
 #-------------------------------OUTPUT BASIC-------------------------------#
     fout.write("operation release information," + op_release_info + "\n")
     fout.write("cpu physical number," + str(cpu_number) + "\n")
     fout.write("gpu device number," + str(device_number) + "\n")
+    fout.write("\n")
 #-------------------------------OUTPUT BASIC END-------------------------------#
 
 #-------------------------------OUTPUT CPU-------------------------------#
-    fout.write("cpu\n")
+    fout.write("CPU\n")
     cpu_model = "CPU name,"+cpuinfo_list[2]+'\n'
     cpu_core = "CPU core(s),"+cpuinfo_list[1]+'\n'
     cpu_threadpercore = "CPU thread per core,"+cpuinfo_list[0]+'\n'
     fout.write(cpu_model)
     fout.write(cpu_core)
     fout.write(cpu_threadpercore)
+    fout.write("\n")
 #-------------------------------OUTPUT CPU END-------------------------------#
 
 #-------------------------------OUTPUT GPU-------------------------------#
-    fout.write("gpu\n")
+    fout.write("GPU\n")
     fout.write("gpu,")
     for cnt in range(device_number-1):
         fout.write("device" + str(cnt) + ",")
