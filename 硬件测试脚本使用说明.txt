@@ -5,6 +5,15 @@
 4.输入命令：sudo sh test-one-click.sh 回车
 5.双击打开HardwareTest目录下的out.csv文件
 
+压力测试脚本使用说明：
+1.打开终端terminal
+2.输入命令：cd /home/tusimple/HardwareTest/ 回车
+3.输入命令：sudo sh test-temperature-1.sh 回车
+4.输入命令：sudo sh test-temperature-2.sh 回车
+5.输入命令：sudo sh test-temperature-3.sh 回车
+6.输入命令：sudo sh test-temperature-4.sh 回车
+7.测试结果保存在temperature_*.csv文件中，双击打开即可
+
 备用方案：
 1.基本信息测试
   输入命令：cat /proc/cpuinfo   ----- CPU信息
