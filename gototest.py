@@ -4,7 +4,9 @@
 ################################################################################
 import commands
 import os
-import sys
+import sys,commands
+
+password = 'tusimple2017'
 
 def profile_gpulog(filename):
     fopen = open(filename, 'r')
@@ -119,11 +121,13 @@ def concatelist(sample):
     return res
 def check(sample,standard):
     res = ""
+    flag = True
     for cnt in range(len(sample)):
         if(sample[cnt] == standard[0]):
-            res = res + sample[cnt]+"  (Pass)"+","
+            res = res + sample[cnt]+" , Pass"+","
         else:
-            res = res + sample[cnt]+"  (Failed "+standard[0]+")"+","
+            res = res + sample[cnt]+" , Failed "+standard[0]+""+","
+            flag = False
     res = res + "\n"
     return res
 
@@ -144,6 +148,9 @@ def prettyprint():
     fout = open("out.csv", 'w')
 
 #-------------------------------OUTPUT BASIC-------------------------------#
+    command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
+    serial_number = commands.getoutput(command)[-15:]
+    fout.write("machine serial number,"+serial_number+"\n")
     fout.write("operation release information," + op_release_info + "\n")
     fout.write("cpu physical number," + str(cpu_number) + "\n")
     fout.write("gpu device number," + str(device_number) + "\n")
