@@ -1,0 +1,38 @@
+#warning:修改参数时请不要改动格式，否则可能会影响读入标准值
+
+####CPU config####
+
+CPU(s):                8
+Thread(s) per core:    2
+Model name:            Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
+
+####Bandwidth config####
+
+ Host to Device Bandwidth, 1 Device(s)
+ PINNED Memory Transfers
+   Transfer Size (Bytes)	Bandwidth(MB/s)
+   33554432			6272.2
+
+ Device to Host Bandwidth, 1 Device(s)
+ PINNED Memory Transfers
+   Transfer Size (Bytes)	Bandwidth(MB/s)
+   33554432			6406.2
+
+ Device to Device Bandwidth, 1 Device(s)
+ PINNED Memory Transfers
+   Transfer Size (Bytes)	Bandwidth(MB/s)
+   33554432			212486.5
+
+####GPU standard config####
+
+CUDA Driver Version / Runtime Version          9.1 / 8.0
+CUDA Capability Major/Minor version number:    6.1
+Total amount of global memory:                 8112 MBytes (8506048512 bytes)
+(20) Multiprocessors, (128) CUDA Cores/MP:     2560 CUDA Cores
+GPU Max Clock rate:                            1734 MHz (1.73 GHz)
+
+####Flop standard config####
+
+==== Running N=10 without streams ====
+Single float : GFLOPS=7337.48
+Double float : GFLOPS=249.558

@@ -24,6 +24,8 @@ def profile_gpulog(filename):
             gpu_mainclock.append(lines[cnt].split(":")[-1].strip())
         if "Memory Bus Width" in lines[cnt]:
             memory_bus_w.append(lines[cnt].split(":")[-1].strip())
+        if "GeForce" in lines[cnt] and "Device" in lines[cnt] and len(lines[cnt]) < 35:
+            gpu_name.append(lines[cnt].split("Version")[-1].strip())
     fopen.close()
 
 def check_gpulog(filename):
@@ -31,7 +33,7 @@ def check_gpulog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "CUDA Driver Version / Runtime Version" in lines[cnt]:
-            check_driver_runtime_version.append(lines[cnt].split("Version")[-1].strip())
+            check_driver_runtime_version.append(lines[cnt].split("Version")[-1].strip()[6:])
         if "CUDA Capability Major" in lines[cnt]:
             check_capability_M_version.append(lines[cnt].split(":")[-1].strip())
         if "Total amount of global memory" in lines[cnt]:
@@ -40,8 +42,8 @@ def check_gpulog(filename):
             check_cuda_cores.append(lines[cnt].split(":")[-1].strip())
         if "GPU Max Clock rate" in lines[cnt]:
             check_gpu_mainclock.append(lines[cnt].split(":")[-1].strip())
-        if "Memory Bus Width" in lines[cnt]:
-            check_memory_bus_w.append(lines[cnt].split(":")[-1].strip())
+        # if "Memory Bus Width" in lines[cnt]:
+        #     check_memory_bus_w.append(lines[cnt].split(":")[-1].strip())
     fopen.close()
 
 
@@ -83,8 +85,8 @@ def check_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            check_single_f.append(lines[cnt+5].split("=")[-1].strip())
-            check_double_f.append(lines[cnt+10].split("=")[-1].strip())
+            check_single_f.append(lines[cnt+1].split("=")[-1].strip())
+            check_double_f.append(lines[cnt+2].split("=")[-1].strip())
     fopen.close()
 
 
@@ -119,65 +121,90 @@ def concatelist(sample):
         res = res + sample[cnt] + ","
     res = res + sample[-1] + "\n"
     return res
+# def check(sample,standard):
+#     res = ""
+#     flag = True
+#     for cnt in range(len(sample)):
+#         if(sample[cnt] == standard[0]):
+#             res = res + sample[cnt]+" , Pass"+","
+#         else:
+#             res = res + sample[cnt]+" , Failed "+standard[0]+""+","
+#             flag = False
+#     res = res + "\n"
+#     return res
 def check(sample,standard):
     res = ""
     flag = True
-    for cnt in range(len(sample)):
-        if(sample[cnt] == standard[0]):
-            res = res + sample[cnt]+" , Pass"+","
+    if(len(sample) > 0):
+        if(sample[0] == standard[0]):
+            res = res + sample[0]+" , Pass,"+standard[0]+""+","
         else:
-            res = res + sample[cnt]+" , Failed "+standard[0]+""+","
+            res = res + sample[0]+" , Failed,"+standard[0]+""+","
             flag = False
+
+        del sample[0]
     res = res + "\n"
     return res
 
 def check_bw_flops(sample,standard):
     res = ""
-    for cnt in range(len(sample)):
-        print cnt,sample[cnt]
-        if((float(standard[0]) - float(sample[cnt]))/float(standard[0]) < 0.1):
-            res = res + sample[cnt]+"  (Pass)"+","
+    if(len(sample) > 0 ):
+        if((float(standard[0]) - float(sample[0]))/float(standard[0]) < 0.1):
+            res = res + sample[0]+"  ,Pass,"+standard[0]+""+","
         else:
-            res = res + sample[cnt]+"  (Failed "+standard[0]+")"+","
+            res = res + sample[0]+"  ,Failed, "+standard[0]+""+","
+
+        del sample[0]
     res = res + "\n"
     return res
 
 
 
-def prettyprint():
+def base_info_print():
     fout = open("out.csv", 'w')
 
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command)[-15:]
     fout.write("machine serial number,"+serial_number+"\n")
-    fout.write("operation release information," + op_release_info + "\n")
+    fout.write("OS version," + op_release_info + "\n")
     fout.write("cpu physical number," + str(cpu_number) + "\n")
     fout.write("gpu device number," + str(device_number) + "\n")
     fout.write("\n")
 #-------------------------------OUTPUT BASIC END-------------------------------#
-
 #-------------------------------OUTPUT CPU-------------------------------#
     fout.write("CPU\n")
     cpu_model = "CPU name,"+cpuinfo_list[2]+'\n'
-    cpu_core = "CPU core(s),"+cpuinfo_list[1]+'\n'
-    cpu_threadpercore = "CPU thread per core,"+cpuinfo_list[0]+'\n'
+
+    cpu_core = "CPU core(s),"+cpuinfo_list[0]
+
+    if(cpuinfo_list[0] == check_cpuinfo_list[0]):
+        cpu_core += ",Pass," + check_cpuinfo_list[0] + '\n'
+    else:
+        cpu_core += ",Failed," + check_cpuinfo_list[0] + '\n'
+    cpu_threadpercore = "CPU thread per core,"+cpuinfo_list[1]
+
+    if(cpuinfo_list[1] == check_cpuinfo_list[1]):
+        cpu_threadpercore += ",Pass,"+check_cpuinfo_list[1] + '\n'
+    else:
+        cpu_threadpercore += ",Failed," + check_cpuinfo_list[1] + '\n'
+
     fout.write(cpu_model)
     fout.write(cpu_core)
     fout.write(cpu_threadpercore)
     fout.write("\n")
 #-------------------------------OUTPUT CPU END-------------------------------#
 
+def advanced_info_print(i):
+    fout = open("out.csv", 'a')
+
 #-------------------------------OUTPUT GPU-------------------------------#
-    fout.write("GPU\n")
     fout.write("gpu,")
-    for cnt in range(device_number-1):
-        fout.write("device" + str(cnt) + ",")
-    fout.write("device"+str(device_number-1)+"\n")
-    gpu_bus_id = "bus_id," + concatelist(bus_id)
-    fout.write(gpu_bus_id)
+    fout.write(gpu_name[i] + "\n")
+    #gpu_bus_id = "bus_id," + concatelist(bus_id)
+    #fout.write(gpu_bus_id)
 #    gpu_version = "driver/runtime version," + concatelist(driver_runtime_version)
-    gpu_version = "driver/runtime version," + \
+    gpu_version = "CUDA version," + \
         check(driver_runtime_version,check_driver_runtime_version)
     fout.write(gpu_version)
     gpu_cap_version = "capability version," + \
@@ -192,9 +219,9 @@ def prettyprint():
     gpu_clock = "main clock," + \
         check(gpu_mainclock,check_gpu_mainclock)
     fout.write(gpu_clock)
-    gpu_mem_bus = "Bus width," + \
-        check(memory_bus_w,check_memory_bus_w)
-    fout.write(gpu_mem_bus)
+    # gpu_mem_bus = "Bus width," + \
+    #     check(memory_bus_w,check_memory_bus_w)
+    # fout.write(gpu_mem_bus)
     gpu_single_flops = "Single float(GFLOPS)," + \
         check_bw_flops(single_f,check_single_f)
     fout.write(gpu_single_flops)
@@ -220,8 +247,10 @@ if __name__ == "__main__":
     op_release_info = operation_info.split("\n")[2].split(":")[-1].strip()
 # cpu and mainboard
     cpuinfo_list = []
+    check_cpuinfo_list = []
     os.system("lscpu > log_cpu")
     profile_cpulog("log_cpu")
+    check_cpulog('./standard_info')
 # gpu
 #------------------GPU:BASIC INFORMATION------------------#
     bus_id_str = commands.getoutput("nvidia-smi --query-gpu=pci.bus_id --format=csv")
@@ -238,9 +267,10 @@ if __name__ == "__main__":
     check_gpu_mainclock = []
     memory_bus_w = []
     check_memory_bus_w = []
+    gpu_name = []
     os.system(CUDASAMPLES + "/1_Utilities/deviceQuery/deviceQuery > log_gpu")
     profile_gpulog("./log_gpu")
-    check_gpulog("./std_gpu")
+    check_gpulog("./standard_info")
 
     print driver_runtime_version
     print capability_M_version
@@ -264,7 +294,7 @@ if __name__ == "__main__":
     # for all device
     os.system(CUDASAMPLES + "/1_Utilities/bandwidthTest/bandwidthTest -device=all > log_bandwidth_all")
     profile_bandwidthlog("./log_bandwidth_all")
-    check_bandwidthlog("./std_bandwidth")
+    check_bandwidthlog("./standard_info")
     print h2d
     print d2h
     print d2d
@@ -279,8 +309,10 @@ if __name__ == "__main__":
     for n2 in range(device_number):
         os.system(CUDASAMPLES + "/7_CUDALibraries/batchCUBLAS/batchCUBLAS -device=" + str(n) + " > log_flops_"+str(n2))
         profile_flopslog("./log_flops_"+str(n2))
-        check_flopslog("./std_flops")
+        check_flopslog("./standard_info")
     print single_f
     print double_f
 #-----------------------GFLOPS END------------------------#
-    prettyprint()
+    base_info_print()
+    for i in range(device_number):
+        advanced_info_print(i)
