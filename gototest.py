@@ -37,11 +37,11 @@ def check_gpulog(filename):
         if "CUDA Capability Major" in lines[cnt]:
             check_capability_M_version.append(lines[cnt].split(":")[-1].strip())
         if "Total amount of global memory" in lines[cnt]:
-            check_memory_size.append(lines[cnt].split(":")[-1].strip())
+            check_memory_size.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "Multiprocessors," in lines[cnt] and "CUDA Cores/MP" in lines[cnt]:
-            check_cuda_cores.append(lines[cnt].split(":")[-1].strip())
+            check_cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
-            check_gpu_mainclock.append(lines[cnt].split(":")[-1].strip())
+            check_gpu_mainclock.append(lines[cnt].split(":")[-1].strip()[0:4])
         # if "Memory Bus Width" in lines[cnt]:
         #     check_memory_bus_w.append(lines[cnt].split(":")[-1].strip())
     fopen.close()
@@ -162,7 +162,7 @@ def check_bw_flops(sample,standard):
 
 def base_info_print():
     fout = open("out.csv", 'w')
-
+    fout.write("Class,Value,Pass/Fail,Standard\n")
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command)[-15:]
@@ -205,19 +205,19 @@ def advanced_info_print(i):
     #fout.write(gpu_bus_id)
 #    gpu_version = "driver/runtime version," + concatelist(driver_runtime_version)
     gpu_version = "CUDA version," + \
-        check(driver_runtime_version,check_driver_runtime_version)
+                  check(driver_runtime_version, check_driver_runtime_version)
     fout.write(gpu_version)
     gpu_cap_version = "capability version," + \
-        check(capability_M_version,check_capability_M_version)
+                      check(capability_M_version, check_capability_M_version)
     fout.write(gpu_cap_version)
-    gpu_memory = "memory size," + \
-        check(memory_size,check_memory_size)
+    gpu_memory = "memory size(MB)," + \
+                 check_bw_flops(memory_size, check_memory_size)
     fout.write(gpu_memory)
     gpu_core = "cuda core(s)," + \
-        check(cuda_cores,check_cuda_cores)
+               check(cuda_cores, check_cuda_cores)
     fout.write(gpu_core)
-    gpu_clock = "main clock," + \
-        check(gpu_mainclock,check_gpu_mainclock)
+    gpu_clock = "main clock(MHz)," + \
+                check_bw_flops(gpu_mainclock, check_gpu_mainclock)
     fout.write(gpu_clock)
     # gpu_mem_bus = "Bus width," + \
     #     check(memory_bus_w,check_memory_bus_w)
