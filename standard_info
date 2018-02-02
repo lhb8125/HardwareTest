@@ -33,6 +33,6 @@ GPU Max Clock rate:                            1734 MHz (1.73 GHz)
 
 ####Flop standard config####
 
-==== Running N=10 without streams ====
-Single float : GFLOPS=7337.48
-Double float : GFLOPS=249.558
+==== Running N=10 batched ====
+Single float : GFLOPS=7162.38
+Double float : GFLOPS=249.151
