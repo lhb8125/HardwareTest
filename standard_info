@@ -1,7 +1,10 @@
 #warning:修改参数时请不要改动格式，否则可能会影响读入标准值
 
+OS Version : Ubuntu 16.04.2 LTS
+
 ####CPU config####
 
+CPU physical number :  2
 CPU(s):                8
 Thread(s) per core:    2
 Model name:            Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
@@ -25,6 +28,7 @@ Model name:            Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
 
 ####GPU standard config####
 
+GPU Device Number : 4
 CUDA Driver Version / Runtime Version          9.1 / 8.0
 CUDA Capability Major/Minor version number:    6.1
 Total amount of global memory:                 8112 MBytes (8506048512 bytes)

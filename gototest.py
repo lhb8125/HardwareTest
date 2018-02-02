@@ -43,7 +43,8 @@ def check_gpulog(filename):
             check_cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
             check_gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
-
+        if "GPU Device Number" in lines[cnt]:
+            std_device_number = int(lines[cnt].split(":")[-1].strip())
         # if "Memory Bus Width" in lines[cnt]:
         #     check_memory_bus_w.append(lines[cnt].split(":")[-1].strip())
     fopen.close()
@@ -114,6 +115,10 @@ def check_cpulog(filename):
             check_cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
         if "Thread(s) per core" in lines[cnt]:
             check_cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
+        if "CPU physical number" in lines[cnt]:
+            std_cpu_number = int(lines[cnt].split(":")[-1].strip())
+        if "OS Version" in lines[cnt]:
+            std_os_version = lines[cnt].split(":")[-1].strip()
     fopen.close()
 
 
@@ -169,9 +174,21 @@ def base_info_print():
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command)[-15:]
     fout.write("machine serial number,"+serial_number+"\n")
-    fout.write("OS version," + op_release_info + "\n")
-    fout.write("cpu physical number," + str(cpu_number) + "\n")
-    fout.write("gpu device number," + str(device_number) + "\n")
+    fout.write("OS version," + op_release_info +","+std_os_version)
+    if(op_release_info == std_os_version):
+        fout.write(",Pass\n")
+    else:
+        fout.write(",Failed\n")
+    fout.write("cpu physical number," + str(cpu_number) + "," + str(std_cpu_number))
+    if (cpu_number == std_cpu_number):
+        fout.write(",Pass\n")
+    else:
+        fout.write(",Failed\n")
+    fout.write("gpu device number," + str(device_number) +","+ str(std_device_number))
+    if(device_number == std_device_number):
+        fout.write(",Pass\n")
+    else:
+        fout.write(",Failed\n")
     fout.write("\n")
 #-------------------------------OUTPUT BASIC END-------------------------------#
 #-------------------------------OUTPUT CPU-------------------------------#
@@ -251,6 +268,8 @@ if __name__ == "__main__":
 # cpu and mainboard
     cpuinfo_list = []
     check_cpuinfo_list = []
+    std_cpu_number = 0
+    std_os_version = ""
     os.system("lscpu > log_cpu")
     profile_cpulog("log_cpu")
     check_cpulog('./standard_info')
@@ -271,6 +290,7 @@ if __name__ == "__main__":
     memory_bus_w = []
     check_memory_bus_w = []
     gpu_name = []
+    std_device_number = 0
     os.system(CUDASAMPLES + "/1_Utilities/deviceQuery/deviceQuery > log_gpu")
     profile_gpulog("./log_gpu")
     check_gpulog("./standard_info")
