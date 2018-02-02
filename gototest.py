@@ -22,6 +22,8 @@ def profile_gpulog(filename):
             cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
             gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
+        if "GeForce" in lines[cnt] and "Device" in lines[cnt] and len(lines[cnt]) < 35:
+            gpu_name.append(lines[cnt].split("Version")[-1].strip())
         # if "Memory Bus Width" in lines[cnt]:
         #     memory_bus_w.append(lines[cnt].split(":")[-1].strip())
 
@@ -41,8 +43,7 @@ def check_gpulog(filename):
             check_cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
             check_gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
-        if "GeForce" in lines[cnt] and "Device" in lines[cnt] and len(lines[cnt]) < 35:
-            gpu_name.append(lines[cnt].split("Version")[-1].strip())
+
         # if "Memory Bus Width" in lines[cnt]:
         #     check_memory_bus_w.append(lines[cnt].split(":")[-1].strip())
     fopen.close()
@@ -53,9 +54,9 @@ def profile_bandwidthlog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Host to Device" in lines[cnt]:
-            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            h2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
         if "Device to Host" in lines[cnt]:
-            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            d2h.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
         if "Device to Device" in lines[cnt]:
             d2d.append(str(round(float(lines[cnt+3].split()[-1].strip()) / 1024.0,3)))
     fopen.close()
@@ -65,11 +66,11 @@ def check_bandwidthlog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Host to Device" in lines[cnt]:
-            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            check_h2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
         if "Device to Host" in lines[cnt]:
-            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            check_d2h.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
         if "Device to Device" in lines[cnt]:
-            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            check_d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
     fopen.close()
 
 def profile_flopslog(filename):
@@ -163,7 +164,7 @@ def check_bw_flops(sample,standard):
 
 def base_info_print():
     fout = open("out.csv", 'w')
-    fout.write("Class,Value,Pass/Fail,Standard\n")
+    fout.write("Class,Value,Standard,Pass/Fail\n")
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command)[-15:]
@@ -180,15 +181,15 @@ def base_info_print():
     cpu_core = "CPU core(s),"+cpuinfo_list[0]
 
     if(cpuinfo_list[0] == check_cpuinfo_list[0]):
-        cpu_core += ",Pass," + check_cpuinfo_list[0] + '\n'
+        cpu_core += check_cpuinfo_list[0] + ",Pass,"   + '\n'
     else:
-        cpu_core += ",Failed," + check_cpuinfo_list[0] + '\n'
+        cpu_core += check_cpuinfo_list[0] + ",Failed," + '\n'
     cpu_threadpercore = "CPU thread per core,"+cpuinfo_list[1]
 
     if(cpuinfo_list[1] == check_cpuinfo_list[1]):
-        cpu_threadpercore += ",Pass,"+check_cpuinfo_list[1] + '\n'
+        cpu_threadpercore += check_cpuinfo_list[1] + ",Pass," + '\n'
     else:
-        cpu_threadpercore += ",Failed," + check_cpuinfo_list[1] + '\n'
+        cpu_threadpercore += check_cpuinfo_list[1] + ",Failed," + '\n'
 
     fout.write(cpu_model)
     fout.write(cpu_core)
@@ -235,6 +236,7 @@ def advanced_info_print(i):
     gpu_d2h = "GPU to CPU(GB/s)," + \
         check_bw_flops(d2h,check_d2h)
     fout.write(gpu_d2h)
+    fout.write("\n")
 #-------------------------------OUTPUT GPU END-------------------------------#
 
     fout.close()
