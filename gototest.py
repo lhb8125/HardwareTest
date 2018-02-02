@@ -181,15 +181,15 @@ def base_info_print():
     cpu_core = "CPU core(s),"+cpuinfo_list[0]
 
     if(cpuinfo_list[0] == check_cpuinfo_list[0]):
-        cpu_core += check_cpuinfo_list[0] + ",Pass,"   + '\n'
+        cpu_core += "," + check_cpuinfo_list[0] + ",Pass,"   + '\n'
     else:
-        cpu_core += check_cpuinfo_list[0] + ",Failed," + '\n'
+        cpu_core += "," + check_cpuinfo_list[0] + ",Failed," + '\n'
     cpu_threadpercore = "CPU thread per core,"+cpuinfo_list[1]
 
     if(cpuinfo_list[1] == check_cpuinfo_list[1]):
-        cpu_threadpercore += check_cpuinfo_list[1] + ",Pass," + '\n'
+        cpu_threadpercore += "," +check_cpuinfo_list[1] + ",Pass," + '\n'
     else:
-        cpu_threadpercore += check_cpuinfo_list[1] + ",Failed," + '\n'
+        cpu_threadpercore += "," + check_cpuinfo_list[1] + ",Failed," + '\n'
 
     fout.write(cpu_model)
     fout.write(cpu_core)
