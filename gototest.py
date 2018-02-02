@@ -17,15 +17,14 @@ def profile_gpulog(filename):
         if "CUDA Capability Major" in lines[cnt]:
             capability_M_version.append(lines[cnt].split(":")[-1].strip())
         if "Total amount of global memory" in lines[cnt]:
-            memory_size.append(lines[cnt].split(":")[-1].strip())
+            memory_size.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "Multiprocessors," in lines[cnt] and "CUDA Cores/MP" in lines[cnt]:
-            cuda_cores.append(lines[cnt].split(":")[-1].strip())
+            cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
-            gpu_mainclock.append(lines[cnt].split(":")[-1].strip())
+            gpu_mainclock.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "Memory Bus Width" in lines[cnt]:
             memory_bus_w.append(lines[cnt].split(":")[-1].strip())
-        if "GeForce" in lines[cnt] and "Device" in lines[cnt] and len(lines[cnt]) < 35:
-            gpu_name.append(lines[cnt].split("Version")[-1].strip())
+
     fopen.close()
 
 def check_gpulog(filename):
@@ -42,6 +41,8 @@ def check_gpulog(filename):
             check_cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
             check_gpu_mainclock.append(lines[cnt].split(":")[-1].strip()[0:4])
+        if "GeForce" in lines[cnt] and "Device" in lines[cnt] and len(lines[cnt]) < 35:
+            gpu_name.append(lines[cnt].split("Version")[-1].strip())
         # if "Memory Bus Width" in lines[cnt]:
         #     check_memory_bus_w.append(lines[cnt].split(":")[-1].strip())
     fopen.close()
@@ -76,8 +77,8 @@ def profile_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            single_f.append(lines[cnt+5].split("=")[-1].strip())
-            double_f.append(lines[cnt+10].split("=")[-1].strip())
+            single_f.append(lines[cnt+1].split("=")[-1].strip())
+            double_f.append(lines[cnt+2].split("=")[-1].strip())
     fopen.close()
 
 def check_flopslog(filename):
@@ -85,8 +86,8 @@ def check_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            check_single_f.append(lines[cnt+1].split("=")[-1].strip())
-            check_double_f.append(lines[cnt+2].split("=")[-1].strip())
+            check_single_f.append(lines[cnt+5].split("=")[-1].strip())
+            check_double_f.append(lines[cnt+10].split("=")[-1].strip())
     fopen.close()
 
 
