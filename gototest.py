@@ -4,7 +4,7 @@
 ################################################################################
 import commands
 import os
-import sys,commands
+import sys,commands,decimal
 
 password = 'tusimple2017'
 
@@ -13,17 +13,17 @@ def profile_gpulog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "CUDA Driver Version / Runtime Version" in lines[cnt]:
-            driver_runtime_version.append(lines[cnt].split("Version")[-1].strip())
-        if "CUDA Capability Major" in lines[cnt]:
-            capability_M_version.append(lines[cnt].split(":")[-1].strip())
+            driver_runtime_version.append(lines[cnt].split("Version")[-1].strip()[6:])
+        # if "CUDA Capability Major" in lines[cnt]:
+        #     capability_M_version.append(lines[cnt].split(":")[-1].strip())
         if "Total amount of global memory" in lines[cnt]:
-            memory_size.append(lines[cnt].split(":")[-1].strip()[0:4])
+            memory_size.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
         if "Multiprocessors," in lines[cnt] and "CUDA Cores/MP" in lines[cnt]:
             cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
-            gpu_mainclock.append(lines[cnt].split(":")[-1].strip()[0:4])
-        if "Memory Bus Width" in lines[cnt]:
-            memory_bus_w.append(lines[cnt].split(":")[-1].strip())
+            gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
+        # if "Memory Bus Width" in lines[cnt]:
+        #     memory_bus_w.append(lines[cnt].split(":")[-1].strip())
 
     fopen.close()
 
@@ -33,14 +33,14 @@ def check_gpulog(filename):
     for cnt in range(len(lines)):
         if "CUDA Driver Version / Runtime Version" in lines[cnt]:
             check_driver_runtime_version.append(lines[cnt].split("Version")[-1].strip()[6:])
-        if "CUDA Capability Major" in lines[cnt]:
-            check_capability_M_version.append(lines[cnt].split(":")[-1].strip())
+        # if "CUDA Capability Major" in lines[cnt]:
+        #     check_capability_M_version.append(lines[cnt].split(":")[-1].strip())
         if "Total amount of global memory" in lines[cnt]:
-            check_memory_size.append(lines[cnt].split(":")[-1].strip()[0:4])
+            check_memory_size.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
         if "Multiprocessors," in lines[cnt] and "CUDA Cores/MP" in lines[cnt]:
             check_cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
-            check_gpu_mainclock.append(lines[cnt].split(":")[-1].strip()[0:4])
+            check_gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
         if "GeForce" in lines[cnt] and "Device" in lines[cnt] and len(lines[cnt]) < 35:
             gpu_name.append(lines[cnt].split("Version")[-1].strip())
         # if "Memory Bus Width" in lines[cnt]:
@@ -53,11 +53,11 @@ def profile_bandwidthlog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Host to Device" in lines[cnt]:
-            h2d.append(lines[cnt+3].split()[-1].strip())
+            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
         if "Device to Host" in lines[cnt]:
-            d2h.append(lines[cnt+3].split()[-1].strip())
+            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
         if "Device to Device" in lines[cnt]:
-            d2d.append(lines[cnt+3].split()[-1].strip())
+            d2d.append(str(round(float(lines[cnt+3].split()[-1].strip()) / 1024.0,3)))
     fopen.close()
 
 def check_bandwidthlog(filename):
@@ -65,11 +65,11 @@ def check_bandwidthlog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Host to Device" in lines[cnt]:
-            check_h2d.append(lines[cnt+3].split()[-1].strip())
+            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
         if "Device to Host" in lines[cnt]:
-            check_d2h.append(lines[cnt+3].split()[-1].strip())
+            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
         if "Device to Device" in lines[cnt]:
-            check_d2d.append(lines[cnt+3].split()[-1].strip())
+            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
     fopen.close()
 
 def profile_flopslog(filename):
@@ -77,8 +77,8 @@ def profile_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            single_f.append(lines[cnt+1].split("=")[-1].strip())
-            double_f.append(lines[cnt+2].split("=")[-1].strip())
+            single_f.append(str(round(float(lines[cnt+5].split("=")[-1].strip()) / 1000.0,3)))
+            double_f.append(str(round(float(lines[cnt+10].split("=")[-1].strip()) / 1000.0,3)))
     fopen.close()
 
 def check_flopslog(filename):
@@ -86,8 +86,8 @@ def check_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            check_single_f.append(lines[cnt+5].split("=")[-1].strip())
-            check_double_f.append(lines[cnt+10].split("=")[-1].strip())
+            check_single_f.append(str(round(float(lines[cnt+1].split("=")[-1].strip()) / 1000.0,3)))
+            check_double_f.append(str(round(float(lines[cnt+2].split("=")[-1].strip()) / 1000.0,3)))
     fopen.close()
 
 
@@ -138,9 +138,9 @@ def check(sample,standard):
     flag = True
     if(len(sample) > 0):
         if(sample[0] == standard[0]):
-            res = res + sample[0]+" , Pass,"+standard[0]+""+","
+            res = res + sample[0]+","+standard[0]+",Pass,"
         else:
-            res = res + sample[0]+" , Failed,"+standard[0]+""+","
+            res = res + sample[0]+","+standard[0]+",Failed,"
             flag = False
 
         del sample[0]
@@ -151,9 +151,9 @@ def check_bw_flops(sample,standard):
     res = ""
     if(len(sample) > 0 ):
         if((float(standard[0]) - float(sample[0]))/float(standard[0]) < 0.1):
-            res = res + sample[0]+"  ,Pass,"+standard[0]+""+","
+            res = res + sample[0] + "," + standard[0] + ",Pass,"
         else:
-            res = res + sample[0]+"  ,Failed, "+standard[0]+""+","
+            res = res + sample[0] + "," + standard[0] + ",Failed,"
 
         del sample[0]
     res = res + "\n"
@@ -200,39 +200,39 @@ def advanced_info_print(i):
     fout = open("out.csv", 'a')
 
 #-------------------------------OUTPUT GPU-------------------------------#
-    fout.write("gpu,")
-    fout.write(gpu_name[i] + "\n")
+    fout.write("gpu Device{},".format(str(i)))
+    fout.write(gpu_name[i].split(':')[-1] + "\n")
     #gpu_bus_id = "bus_id," + concatelist(bus_id)
     #fout.write(gpu_bus_id)
 #    gpu_version = "driver/runtime version," + concatelist(driver_runtime_version)
     gpu_version = "CUDA version," + \
                   check(driver_runtime_version, check_driver_runtime_version)
     fout.write(gpu_version)
-    gpu_cap_version = "capability version," + \
-                      check(capability_M_version, check_capability_M_version)
-    fout.write(gpu_cap_version)
-    gpu_memory = "memory size(MB)," + \
+    # gpu_cap_version = "capability version," + \
+    #                   check(capability_M_version, check_capability_M_version)
+    # fout.write(gpu_cap_version)
+    gpu_memory = "memory size(GB)," + \
                  check_bw_flops(memory_size, check_memory_size)
     fout.write(gpu_memory)
     gpu_core = "cuda core(s)," + \
                check(cuda_cores, check_cuda_cores)
     fout.write(gpu_core)
-    gpu_clock = "main clock(MHz)," + \
+    gpu_clock = "main clock(GHz)," + \
                 check_bw_flops(gpu_mainclock, check_gpu_mainclock)
     fout.write(gpu_clock)
     # gpu_mem_bus = "Bus width," + \
     #     check(memory_bus_w,check_memory_bus_w)
     # fout.write(gpu_mem_bus)
-    gpu_single_flops = "Single float(GFLOPS)," + \
+    gpu_single_flops = "Single float(TFLOPS)," + \
         check_bw_flops(single_f,check_single_f)
     fout.write(gpu_single_flops)
-    gpu_d2d = "Memory bandwidth(MB/s)," + \
+    gpu_d2d = "Memory bandwidth(GB/s)," + \
         check_bw_flops(d2d,check_d2d)
     fout.write(gpu_d2d)
-    gpu_h2d = "CPU to GPU(MB/s)," + \
+    gpu_h2d = "CPU to GPU(GB/s)," + \
         check_bw_flops(h2d,check_h2d)
     fout.write(gpu_h2d)
-    gpu_d2h = "GPU to CPU(MB/s)," + \
+    gpu_d2h = "GPU to CPU(GB/s)," + \
         check_bw_flops(d2h,check_d2h)
     fout.write(gpu_d2h)
 #-------------------------------OUTPUT GPU END-------------------------------#
@@ -258,8 +258,8 @@ if __name__ == "__main__":
     bus_id =  bus_id_str.split()[1:]
     driver_runtime_version = []
     check_driver_runtime_version = []
-    capability_M_version = []
-    check_capability_M_version = []
+    # capability_M_version = []
+    # check_capability_M_version = []
     memory_size = []
     check_memory_size = []
     cuda_cores = []
@@ -273,12 +273,12 @@ if __name__ == "__main__":
     profile_gpulog("./log_gpu")
     check_gpulog("./standard_info")
 
-    print driver_runtime_version
-    print capability_M_version
-    print memory_size
-    print cuda_cores
-    print gpu_mainclock
-    print memory_bus_w
+    # print driver_runtime_version
+    # # print capability_M_version
+    # print memory_size
+    # print cuda_cores
+    # print gpu_mainclock
+    # print memory_bus_w
 #------------------BASIC INFORMATION END------------------#
 
 #-----------------------GPU:BANDWIDTH-------------------------#
@@ -296,9 +296,9 @@ if __name__ == "__main__":
     os.system(CUDASAMPLES + "/1_Utilities/bandwidthTest/bandwidthTest -device=all > log_bandwidth_all")
     profile_bandwidthlog("./log_bandwidth_all")
     check_bandwidthlog("./standard_info")
-    print h2d
-    print d2h
-    print d2d
+    # print h2d
+    # print d2h
+    # print d2d
 #-----------------------BANDWIDTH END-------------------------#
 
 #-----------------------GPU:GFLOPS------------------------#
@@ -311,8 +311,8 @@ if __name__ == "__main__":
         os.system(CUDASAMPLES + "/7_CUDALibraries/batchCUBLAS/batchCUBLAS -device=" + str(n) + " > log_flops_"+str(n2))
         profile_flopslog("./log_flops_"+str(n2))
         check_flopslog("./standard_info")
-    print single_f
-    print double_f
+    # print single_f
+    # print double_f
 #-----------------------GFLOPS END------------------------#
     base_info_print()
     for i in range(device_number):
