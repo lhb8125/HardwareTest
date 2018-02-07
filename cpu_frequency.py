@@ -1,4 +1,8 @@
-import os,commands,time,threading
+#coding=utf-8
+import os,commands,time,threading,argparse
+
+
+
 
 def get_cpu_frequency():
     command = 'cat /proc/cpuinfo | grep MHz'
@@ -6,16 +10,20 @@ def get_cpu_frequency():
     frequency = []
     for i in raw_frequency:
         f = i.split(":")[-1].strip()
-        frequency.append(int(f[:4]))
+        frequency.append(int(f.split(".")[0]))
     return frequency
 
+
+def get_cpu_temperature():
+    cammand = "sensors | grep Core"
 standard = get_cpu_frequency()
 
 for i in range(90):
     tmp = get_cpu_frequency()
-    for j in range(len(tmp)):
-        if (tmp[j] != standard[j]):
-            print("CPU frequency(MHz) round {}:{} ------- Failed".format(i,tmp))
-    print("CPU frequency(MHz) round {}:{} ------- Still OK".format(i, tmp))
-    time.sleep(5)
+    f = 0
+    for j in tmp:
+        f += j
+    print("CPU average frequency(MHz) per core round {} : {}".format(i,f/len(tmp)))
+    time.sleep(2)
+
 

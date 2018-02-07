@@ -5,7 +5,7 @@ OS Version : Ubuntu 16.04.2 LTS
 ####CPU config####
 
 CPU physical number :  2
-CPU(s):                8
+CPU(s):                56
 Thread(s) per core:    2
 Model name:            Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
 

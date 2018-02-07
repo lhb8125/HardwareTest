@@ -1,10 +1,12 @@
+#coding=utf-8
 ################################################################################
 # This script is created by Guancheng Wang, HPC department of Tusimple.
 # If any problem occurs, please be free to contact guancheng.wang@tusimple.com
 ################################################################################
 import commands
 import os
-import sys,commands,decimal
+from sets import Set
+import sys,commands,decimal,time
 
 password = 'tusimple2017'
 
@@ -32,6 +34,7 @@ def profile_gpulog(filename):
 def check_gpulog(filename):
     fopen = open(filename, 'r')
     lines = fopen.readlines()
+    global std_device_number
     for cnt in range(len(lines)):
         if "CUDA Driver Version / Runtime Version" in lines[cnt]:
             check_driver_runtime_version.append(lines[cnt].split("Version")[-1].strip()[6:])
@@ -108,9 +111,12 @@ def profile_cpulog(filename):
 def check_cpulog(filename):
     fopen = open(filename, 'r')
     lines = fopen.readlines()
+    global cpu_model_name
+    global std_os_version
+    global std_cpu_number
     for cnt in range(len(lines)):
         if "Model name" in lines[cnt]:
-            check_cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
+            cpu_model_name.add(lines[cnt].split(":")[-1].strip())
         if "CPU(s):" in lines[cnt]:
             check_cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
         if "Thread(s) per core" in lines[cnt]:
@@ -118,7 +124,7 @@ def check_cpulog(filename):
         if "CPU physical number" in lines[cnt]:
             std_cpu_number = int(lines[cnt].split(":")[-1].strip())
         if "OS Version" in lines[cnt]:
-            std_os_version = lines[cnt].split(":")[-1].strip()
+            std_os_version = lines[cnt].split(":")[-1].strip().split(" ")[1]
     fopen.close()
 
 
@@ -169,22 +175,22 @@ def check_bw_flops(sample,standard):
 
 def base_info_print():
     fout = open("out.csv", 'w')
-    fout.write("Class,Value,Standard,Pass/Fail\n")
+    fout.write("测试项目,测试值,标准值,通过/失败\n")
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
-    serial_number = commands.getoutput(command)[-15:]
-    fout.write("machine serial number,"+serial_number+"\n")
+    serial_number = commands.getoutput(command).split("\n")[0].strip()
+    fout.write("Motherboard serial number,"+serial_number+"\n")
     fout.write("OS version," + op_release_info +","+std_os_version)
     if(op_release_info == std_os_version):
         fout.write(",Pass\n")
     else:
         fout.write(",Failed\n")
-    fout.write("cpu physical number," + str(cpu_number) + "," + str(std_cpu_number))
+    fout.write("number of CPU," + str(cpu_number) + "," + str(std_cpu_number))
     if (cpu_number == std_cpu_number):
         fout.write(",Pass\n")
     else:
         fout.write(",Failed\n")
-    fout.write("gpu device number," + str(device_number) +","+ str(std_device_number))
+    fout.write("number of GPU," + str(device_number) +","+ str(std_device_number))
     if(device_number == std_device_number):
         fout.write(",Pass\n")
     else:
@@ -193,7 +199,20 @@ def base_info_print():
 #-------------------------------OUTPUT BASIC END-------------------------------#
 #-------------------------------OUTPUT CPU-------------------------------#
     fout.write("CPU\n")
-    cpu_model = "CPU name,"+cpuinfo_list[2]+'\n'
+    cpu_model = ""
+    if(len(cpu_model_name) == 1):
+        for i in cpu_model_name:
+            for j in range(cpu_number):
+                cpu_model += "CPU {} name,".format(j)
+                cpu_tmp_info = i.split(" ")
+                cpu_model += cpu_tmp_info[2]  +',\n'
+    else:
+        count = 0
+        for i in cpu_model_name:
+            cpu_model += "CPU {} name,".format(count)
+            cpu_tmp_info = i.split(" ")
+            cpu_model += cpu_tmp_info[2] + ',\n'
+            count += 1
 
     cpu_core = "CPU core(s),"+cpuinfo_list[0]
 
@@ -201,12 +220,11 @@ def base_info_print():
         cpu_core += "," + check_cpuinfo_list[0] + ",Pass,"   + '\n'
     else:
         cpu_core += "," + check_cpuinfo_list[0] + ",Failed," + '\n'
-    cpu_threadpercore = "CPU thread per core,"+cpuinfo_list[1]
-
-    if(cpuinfo_list[1] == check_cpuinfo_list[1]):
-        cpu_threadpercore += "," +check_cpuinfo_list[1] + ",Pass," + '\n'
+    cpu_threadpercore = "CPU hyperthreading,"
+    if(cpuinfo_list[1] > 1):
+        cpu_threadpercore += "True," + "True" + ",Pass," + '\n'
     else:
-        cpu_threadpercore += "," + check_cpuinfo_list[1] + ",Failed," + '\n'
+        cpu_threadpercore += "False," + "True"+ ",Failed," + '\n'
 
     fout.write(cpu_model)
     fout.write(cpu_core)
@@ -218,8 +236,9 @@ def advanced_info_print(i):
     fout = open("out.csv", 'a')
 
 #-------------------------------OUTPUT GPU-------------------------------#
-    fout.write("gpu Device{},".format(str(i)))
-    fout.write(gpu_name[i].split(':')[-1] + "\n")
+    fout.write("gpu Device{},\n".format(str(i)))
+    # fout.write(gpu_name[i].split(':')[-1] + "\n")
+
     #gpu_bus_id = "bus_id," + concatelist(bus_id)
     #fout.write(gpu_bus_id)
 #    gpu_version = "driver/runtime version," + concatelist(driver_runtime_version)
@@ -258,16 +277,41 @@ def advanced_info_print(i):
 
     fout.close()
 
+def get_cpu_frequency():
+    command = 'cat /proc/cpuinfo | grep MHz'
+    raw_frequency = commands.getoutput(command).split("\n")
+    frequency = []
+    for i in raw_frequency:
+        f = i.split(":")[-1].strip()
+        frequency.append(int(f[:4]))
+    return frequency
+
+def stress_test():
+    fout = open("out.csv", 'a')
+    standard = get_cpu_frequency()
+    fout.write("CPU stress test,Standard : {},".format(standard[0]))
+    for i in range(10):
+        tmp = get_cpu_frequency()
+        for j in range(len(tmp)):
+            if(tmp[j] != standard[j]):
+                fout.write("Failed")
+                return 0
+        time.sleep(1)
+    fout.write("Pass")
+    return 1
+
+
 
 if __name__ == "__main__":
     CUDASAMPLES = "/home/tusimple/HardwareTest/cudaSamples"
     device_number = int(commands.getoutput('nvidia-smi -L | wc -l'))
     cpu_number = int(commands.getoutput("cat /proc/cpuinfo | grep \"physical id\" | sort | uniq | wc -l"))
     operation_info = commands.getoutput("lsb_release -a")
-    op_release_info = operation_info.split("\n")[2].split(":")[-1].strip()
+    op_release_info = operation_info.split("\n")[2].split(":")[-1].split(" ")[1]
 # cpu and mainboard
     cpuinfo_list = []
     check_cpuinfo_list = []
+    cpu_model_name = Set()
     std_cpu_number = 0
     std_os_version = ""
     os.system("lscpu > log_cpu")
