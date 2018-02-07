@@ -1,0 +1,1 @@
+python matmul.py & python cpu_frequency.py
