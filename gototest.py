@@ -135,7 +135,7 @@ def check_cpulog(filename):
     global password
     for cnt in range(len(lines)):
         if "Model name" in lines[cnt]:
-            cpu_model_name.add(lines[cnt].split(":")[-1].strip())
+            cpu_model_name = lines[cnt].split(":")[-1].strip().split(" ")[3]
         if "CPU(s):" in lines[cnt]:
             check_cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
         if "Thread(s) per core" in lines[cnt]:
@@ -164,7 +164,7 @@ def concatelist(sample):
     res = res + sample[-1] + "\n"
     return res
 
-def check(sample,standard):
+def check(sample,standard):#传入的sample是数组，standard只有一个item
     res = ""
     flag = True
     if(len(sample) > 0):
@@ -178,6 +178,18 @@ def check(sample,standard):
     res = res + "\n"
     return res
 
+def check_one(sample,standard):
+    res = ""
+    flag = True
+
+    if (sample == standard):
+        res = res + str(sample) + ",    ," + str(standard) + ",    ,Pass,"
+    else:
+        res = res + str(sample) + ",    ," + str(standard) + ",    ,Failed,"
+        flag = False
+
+    res = res + "\n"
+    return res
 
 #仅用于check CPU cache size
 def check_parallel(sample,standard):
@@ -212,6 +224,7 @@ def check_bw_flops(sample,standard):
 def base_info_print():
     fout = open("out.csv", 'w')
     fout.write("Basic info,\n")
+    fout.write("本报告测试时间 : {}".format(time.localtime(time.time())))
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command).split("\n")[0].strip()
@@ -248,8 +261,7 @@ def base_info_print():
     for j in range(cpu_number):
         cpu_model += "CPU {} name,".format(j)
         cpu_tmp_info = cpuinfo_list[2].split(" ")
-        cpu_model += cpu_tmp_info[3]  +',\n'
-        print cpu_tmp_info
+        cpu_model += check_one(cpu_tmp_info[3],cpu_model_name)
 
     cpu_core = "CPU core(s),"+cpuinfo_list[0]
 
@@ -296,7 +308,7 @@ def advanced_info_print(i):
                check(cuda_cores, check_cuda_cores)
     fout.write(gpu_core)
     gpu_clock = "main clock(GHz)," + \
-                check_bw_flops(gpu_mainclock, check_gpu_mainclock)
+                check(gpu_mainclock, check_gpu_mainclock)
     fout.write(gpu_clock)
     # gpu_mem_bus = "Bus width," + \
     #     check(memory_bus_w,check_memory_bus_w)
@@ -333,7 +345,7 @@ if __name__ == "__main__":
     check_cpuinfo_list = []
     std_cache_size = []
     local_cache_size = []
-    cpu_model_name = Set()
+    cpu_model_name = ""
     std_cpu_number = 0
     std_os_version = ""
     os.system("lscpu > log_cpu")

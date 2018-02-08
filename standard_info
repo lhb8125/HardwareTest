@@ -29,10 +29,11 @@ L3 cache:              35840K
    Transfer Size (Bytes)	Bandwidth(MB/s)
    33554432			6406.2
 
+#GTX 1080 memory bandwidth 官方说的320G/s 但目前测的都只有220G出头
  Device to Device Bandwidth, 1 Device(s)
  PINNED Memory Transfers
    Transfer Size (Bytes)	Bandwidth(MB/s)
-   33554432			212486.5
+   33554432			232486.5
 
 ####GPU standard config####
 

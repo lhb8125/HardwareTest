@@ -11,8 +11,8 @@ bottleneck = int(args.n)
 
 
 def calculate():
-    a = np.random.random((20000,20000))
-    b = np.random.random((20000,20000))
+    a = np.random.random((30000,30000))
+    b = np.random.random((30000,30000))
     np.matmul(a,b)
 
 

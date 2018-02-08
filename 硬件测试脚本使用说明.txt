@@ -4,6 +4,7 @@
 3.输入命令：cd /home/tusimple/HardwareTest/ 回车
 4.输入命令：sudo sh test-one-click.sh 回车
 5.双击打开HardwareTest目录下的out.csv文件
+6.自定义配置在standard_info，具体信息见该文件
 
 压力测试脚本使用说明：
 1.打开终端terminal
