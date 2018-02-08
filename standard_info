@@ -1,5 +1,5 @@
 #warning:修改参数时请不要改动格式，否则可能会影响读入标准值
-#error_range 是可以容忍的误差范围，0.1即为标准值上下浮动10%
+#error range 是可以容忍的误差范围，0.1即为标准值上下浮动10%
 error_range : 0.1
 
 OS Version : Ubuntu 16.04.2 LTS

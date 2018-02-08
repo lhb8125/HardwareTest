@@ -139,7 +139,7 @@ def check_cpulog(filename):
         if "L3 cache" in lines[cnt]:
             std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
         if "error_range" in lines[cnt]:
-            error_range = int(lines[cnt].split(":")[-1].strip())
+            error_range = float(lines[cnt].split(":")[-1].strip())
     fopen.close()
 
 
@@ -185,7 +185,7 @@ def check_bw_flops(sample,standard):
     res = ""
     if(len(sample) > 0 ):
         if((float(standard[0]) - float(sample[0]))/float(standard[0]) < error_range):
-            res = res + sample[0] + "," + str(int(standard[0]) * (1 - error_range)) +"~"+str(int(standard[0]) * (1 + error_range)) + ",Pass,"
+            res = res + sample[0] + "," + str(round(float(standard[0]) * (1 - error_range),3)) +"~"+str(round(float(standard[0]) * (1 + error_range),3))+ ",Pass,"
         else:
             res = res + sample[0] + "," + standard[0] + ",Failed,"
 
