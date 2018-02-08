@@ -106,6 +106,13 @@ def profile_cpulog(filename):
             cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
         if "Thread(s) per core" in lines[cnt]:
             cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
+        if "L1d cache" in lines[cnt]:
+            local_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
+        if "L2 cache" in lines[cnt]:
+            local_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
+        if "L3 cache" in lines[cnt]:
+            local_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
+
     fopen.close()
 
 def check_cpulog(filename):
@@ -125,6 +132,12 @@ def check_cpulog(filename):
             std_cpu_number = int(lines[cnt].split(":")[-1].strip())
         if "OS Version" in lines[cnt]:
             std_os_version = lines[cnt].split(":")[-1].strip().split(" ")[1]
+        if "L1d cache" in lines[cnt]:
+            std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
+        if "L2 cache" in lines[cnt]:
+            std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
+        if "L3 cache" in lines[cnt]:
+            std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
     fopen.close()
 
 
@@ -156,6 +169,23 @@ def check(sample,standard):
             flag = False
 
         del sample[0]
+    res = res + "\n"
+    return res
+
+
+#仅用于check CPU cache size
+def check_parallel(sample,standard):
+    res = ""
+    flag = True
+    if(len(sample) > 0):
+        if(sample[0] == standard[0]):
+            res = res + sample[0]+","+standard[0]+",Pass,"
+        else:
+            res = res + sample[0]+","+standard[0]+",Failed,"
+            flag = False
+
+        del sample[0]
+        del standard[0]
     res = res + "\n"
     return res
 
@@ -226,9 +256,16 @@ def base_info_print():
     else:
         cpu_threadpercore += "False," + "True"+ ",Failed," + '\n'
 
+    L1_cache = "L1 cache(K)," + check_parallel(local_cache_size,std_cache_size)
+    L2_cache = "L2 cache(K)," + check_parallel(local_cache_size,std_cache_size)
+    L3_cache = "L3 cache(K)," + check_parallel(local_cache_size,std_cache_size)
+
     fout.write(cpu_model)
     fout.write(cpu_core)
     fout.write(cpu_threadpercore)
+    fout.write(L1_cache)
+    fout.write(L2_cache)
+    fout.write(L3_cache)
     fout.write("\n")
 #-------------------------------OUTPUT CPU END-------------------------------#
 
@@ -311,6 +348,8 @@ if __name__ == "__main__":
 # cpu and mainboard
     cpuinfo_list = []
     check_cpuinfo_list = []
+    std_cache_size = []
+    local_cache_size = []
     cpu_model_name = Set()
     std_cpu_number = 0
     std_os_version = ""
