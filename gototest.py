@@ -340,6 +340,7 @@ if __name__ == "__main__":
     op_release_info = operation_info.split("\n")[2].split(":")[-1].split(" ")[1]
 # cpu and mainboard
     error_range = 0 #误差范围
+    serial_number = {}#cpu,gpu,memory,disk等的ID
     cpuinfo_list = []
     biosinfo_list = []
     check_cpuinfo_list = []
