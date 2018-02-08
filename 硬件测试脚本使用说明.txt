@@ -14,6 +14,16 @@
 6.输入命令：sudo sh test-temperature-4.sh 回车
 7.测试结果保存在temperature_*.csv文件中，双击打开即可
 
+万兆网测试说明：
+1.配IP地址
+服务器端: sudo ip address add 192.168.1.1/24 dev eth0
+客户端: sudo ip address add 192.168.1.2/24 dev eth0
+2.服务器端和客户端均需安装iperf
+sudo apt-get install iperf
+3.测试
+服务器端: iperf -s -B 192.168.1.1
+客户端: iperf -c 192.168.1.1 -B 192.168.1.2 -i 1 -t 10 -f g
+
 备用方案：
 1.基本信息测试
   输入命令：cat /proc/cpuinfo   ----- CPU信息
