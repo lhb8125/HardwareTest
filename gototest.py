@@ -138,6 +138,8 @@ def check_cpulog(filename):
             std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
         if "L3 cache" in lines[cnt]:
             std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
+        if "error_range" in lines[cnt]:
+            error_range = int(lines[cnt].split(":")[-1].strip())
     fopen.close()
 
 
@@ -147,17 +149,7 @@ def concatelist(sample):
         res = res + sample[cnt] + ","
     res = res + sample[-1] + "\n"
     return res
-# def check(sample,standard):
-#     res = ""
-#     flag = True
-#     for cnt in range(len(sample)):
-#         if(sample[cnt] == standard[0]):
-#             res = res + sample[cnt]+" , Pass"+","
-#         else:
-#             res = res + sample[cnt]+" , Failed "+standard[0]+""+","
-#             flag = False
-#     res = res + "\n"
-#     return res
+
 def check(sample,standard):
     res = ""
     flag = True
@@ -192,8 +184,8 @@ def check_parallel(sample,standard):
 def check_bw_flops(sample,standard):
     res = ""
     if(len(sample) > 0 ):
-        if((float(standard[0]) - float(sample[0]))/float(standard[0]) < 0.1):
-            res = res + sample[0] + "," + standard[0] + ",Pass,"
+        if((float(standard[0]) - float(sample[0]))/float(standard[0]) < error_range):
+            res = res + sample[0] + "," + str(int(standard[0]) * (1 - error_range)) +"~"+str(int(standard[0]) * (1 + error_range)) + ",Pass,"
         else:
             res = res + sample[0] + "," + standard[0] + ",Failed,"
 
@@ -275,7 +267,6 @@ def advanced_info_print(i):
 #-------------------------------OUTPUT GPU-------------------------------#
     fout.write("gpu Device{},\n".format(str(i)))
     # fout.write(gpu_name[i].split(':')[-1] + "\n")
-
     #gpu_bus_id = "bus_id," + concatelist(bus_id)
     #fout.write(gpu_bus_id)
 #    gpu_version = "driver/runtime version," + concatelist(driver_runtime_version)
@@ -346,6 +337,7 @@ if __name__ == "__main__":
     operation_info = commands.getoutput("lsb_release -a")
     op_release_info = operation_info.split("\n")[2].split(":")[-1].split(" ")[1]
 # cpu and mainboard
+    error_range = 0 #误差范围
     cpuinfo_list = []
     check_cpuinfo_list = []
     std_cache_size = []
@@ -378,12 +370,7 @@ if __name__ == "__main__":
     profile_gpulog("./log_gpu")
     check_gpulog("./standard_info")
 
-    # print driver_runtime_version
-    # # print capability_M_version
-    # print memory_size
-    # print cuda_cores
-    # print gpu_mainclock
-    # print memory_bus_w
+
 #------------------BASIC INFORMATION END------------------#
 
 #-----------------------GPU:BANDWIDTH-------------------------#
@@ -401,9 +388,7 @@ if __name__ == "__main__":
     os.system(CUDASAMPLES + "/1_Utilities/bandwidthTest/bandwidthTest -device=all > log_bandwidth_all")
     profile_bandwidthlog("./log_bandwidth_all")
     check_bandwidthlog("./standard_info")
-    # print h2d
-    # print d2h
-    # print d2d
+
 #-----------------------BANDWIDTH END-------------------------#
 
 #-----------------------GPU:GFLOPS------------------------#
@@ -416,8 +401,7 @@ if __name__ == "__main__":
         os.system(CUDASAMPLES + "/7_CUDALibraries/batchCUBLAS/batchCUBLAS -device=" + str(n) + " > log_flops_"+str(n2))
         profile_flopslog("./log_flops_"+str(n2))
         check_flopslog("./standard_info")
-    # print single_f
-    # print double_f
+
 #-----------------------GFLOPS END------------------------#
     base_info_print()
     for i in range(device_number):
