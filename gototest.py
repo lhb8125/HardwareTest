@@ -224,7 +224,7 @@ def check_bw_flops(sample,standard):
 def base_info_print():
     fout = open("out.csv", 'w')
     fout.write("Basic info,\n")
-    fout.write("本报告测试时间 : {}".format(time.localtime(time.time())))
+    fout.write("本报告测试时间 : {}\n".format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))))
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command).split("\n")[0].strip()
