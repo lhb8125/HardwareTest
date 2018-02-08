@@ -27,7 +27,7 @@ def get_cpu_temperature():
 for i in range(90):
     frequency = get_cpu_frequency()
     temperature = get_cpu_temperature()
-    print("CPU average frequency(MHz) round {} : {} , temperature(Celsius) : {} ".format(i,frequency,temperature))
-    time.sleep(2)
+    print("CPU average frequency(MHz) round {} : {} , temperature(Celsius) : {}\n ".format(i,frequency,temperature))
+    time.sleep(3)
 
 

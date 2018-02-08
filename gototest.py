@@ -29,11 +29,11 @@ def profile_gpulog(filename):
         # if "CUDA Capability Major" in lines[cnt]:
         #     capability_M_version.append(lines[cnt].split(":")[-1].strip())
         if "Total amount of global memory" in lines[cnt]:
-            memory_size.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
+            memory_size.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1000.0,1)))
         if "Multiprocessors," in lines[cnt] and "CUDA Cores/MP" in lines[cnt]:
             cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
-            gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
+            gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,1)))
         if "GeForce" in lines[cnt] and "Device" in lines[cnt] and len(lines[cnt]) < 35:
             gpu_name.append(lines[cnt].split("Version")[-1].strip())
         # if "Memory Bus Width" in lines[cnt]:
@@ -51,11 +51,11 @@ def check_gpulog(filename):
         # if "CUDA Capability Major" in lines[cnt]:
         #     check_capability_M_version.append(lines[cnt].split(":")[-1].strip())
         if "Total amount of global memory" in lines[cnt]:
-            check_memory_size.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
+            check_memory_size.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1000.0,1)))
         if "Multiprocessors," in lines[cnt] and "CUDA Cores/MP" in lines[cnt]:
             check_cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
-            check_gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,3)))
+            check_gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,1)))
         if "GPU Device Number" in lines[cnt]:
             std_device_number = int(lines[cnt].split(":")[-1].strip())
         # if "Memory Bus Width" in lines[cnt]:
@@ -169,9 +169,9 @@ def check(sample,standard):
     flag = True
     if(len(sample) > 0):
         if(sample[0] == standard[0]):
-            res = res + str(sample[0])+","+str(standard[0])+",Pass,"
+            res = res + str(sample[0])+",    ,"+str(standard[0])+",    ,Pass,"
         else:
-            res = res + str(sample[0])+","+str(standard[0])+",Failed,"
+            res = res + str(sample[0])+",    ,"+str(standard[0])+",    ,Failed,"
             flag = False
 
         del sample[0]
@@ -185,9 +185,9 @@ def check_parallel(sample,standard):
     flag = True
     if(len(sample) > 0):
         if(sample[0] == standard[0]):
-            res = res + sample[0]+","+standard[0]+",Pass,"
+            res = res + sample[0]+",    ,"+standard[0]+",    ,Pass,"
         else:
-            res = res + sample[0]+","+standard[0]+",Failed,"
+            res = res + sample[0]+",    ,"+standard[0]+",    ,Failed,"
             flag = False
 
         del sample[0]
@@ -199,9 +199,9 @@ def check_bw_flops(sample,standard):
     res = ""
     if(len(sample) > 0 ):
         if((float(standard[0]) - float(sample[0]))/float(standard[0]) < error_range):
-            res = res + sample[0] + "," + str(round(float(standard[0]) * (1 - error_range),3)) +"~"+str(round(float(standard[0]) * (1 + error_range),3))+ ",Pass,"
+            res = res + sample[0] + ",    ," + str(round(float(standard[0]) * (1 - error_range),1)) +"~"+str(round(float(standard[0]) * (1 + error_range),1))+ ",    ,Pass,"
         else:
-            res = res + sample[0] + "," + str(round(float(standard[0]) * (1 - error_range),3)) +"~"+str(round(float(standard[0]) * (1 + error_range),3)) + ",Failed,"
+            res = res + sample[0] + ",    ," + str(round(float(standard[0]) * (1 - error_range),1)) +"~"+str(round(float(standard[0]) * (1 + error_range),1)) + ",    ,Failed,"
 
         del sample[0]
     res = res + "\n"
@@ -216,56 +216,52 @@ def base_info_print():
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command).split("\n")[0].strip()
     fout.write("Serial number,"+serial_number+"\n")
-    fout.write("BIOS Version : {}".format(biosinfo_list[0]))
-    fout.write("Release Date : {}".format(biosinfo_list[1]))
+    fout.write("BIOS Version : {}\n".format(biosinfo_list[0]))
+    fout.write("Release Date : {}\n\n".format(biosinfo_list[1]))
 
 #----------------------------CPU BASIC TEST---------------------------------------------#
-    fout.write("测试项目,测试值,标准值,通过/失败\n\n")
-    fout.write("OS version," + op_release_info +","+std_os_version)
+    fout.write("测试项目,测试值,    ,标准值,    ,通过/失败\n\n")
+    fout.write("OS version," + op_release_info +",    ,"+std_os_version)
     if(op_release_info == std_os_version):
-        fout.write(",Pass\n")
+        fout.write(",    ,Pass\n")
     else:
-        fout.write(",Failed\n")
-    fout.write("number of CPU," + str(cpu_number) + "," + str(std_cpu_number))
+        fout.write(",    ,Failed\n")
+
+    gpu_version = "CUDA version," + \
+                  check(driver_runtime_version, check_driver_runtime_version)
+    fout.write(gpu_version)
+    fout.write("number of CPU," + str(cpu_number) + ",    ," + str(std_cpu_number))
     if (cpu_number == std_cpu_number):
-        fout.write(",Pass\n")
+        fout.write(",    ,Pass\n")
     else:
-        fout.write(",Failed\n")
-    fout.write("number of GPU," + str(device_number) +","+ str(std_device_number))
+        fout.write(",    ,Failed\n")
+    fout.write("number of GPU," + str(device_number) +",    ,"+ str(std_device_number))
     if(device_number == std_device_number):
-        fout.write(",Pass\n")
+        fout.write(",    ,Pass\n")
     else:
-        fout.write(",Failed\n")
+        fout.write(",    ,Failed\n")
     fout.write("\n")
 #-------------------------------OUTPUT BASIC END-------------------------------#
 #-------------------------------OUTPUT CPU-------------------------------#
     fout.write("CPU\n")
     cpu_model = ""
-    if(len(cpu_model_name) == 1):
-        for i in cpu_model_name:
-            for j in range(cpu_number):
-                cpu_model += "CPU {} name,".format(j)
-                cpu_tmp_info = i.split(" ")
-                cpu_model += cpu_tmp_info[2]  +',\n'
-    else:
-        count = 0
-        for i in cpu_model_name:
-            cpu_model += "CPU {} name,".format(count)
-            cpu_tmp_info = i.split(" ")
-            cpu_model += cpu_tmp_info[2] + ',\n'
-            count += 1
+    for j in range(cpu_number):
+        cpu_model += "CPU {} name,".format(j)
+        cpu_tmp_info = cpuinfo_list[2].split(" ")
+        cpu_model += cpu_tmp_info[3]  +',\n'
+        print cpu_tmp_info
 
     cpu_core = "CPU core(s),"+cpuinfo_list[0]
 
     if(cpuinfo_list[0] == check_cpuinfo_list[0]):
-        cpu_core += "," + check_cpuinfo_list[0] + ",Pass,"   + '\n'
+        cpu_core += ",    ," + check_cpuinfo_list[0] + ",    ,Pass,"   + '\n'
     else:
-        cpu_core += "," + check_cpuinfo_list[0] + ",Failed," + '\n'
+        cpu_core += ",    ," + check_cpuinfo_list[0] + ",    ,Failed," + '\n'
     cpu_threadpercore = "CPU hyperthreading,"
     if(cpuinfo_list[1] > 1):
-        cpu_threadpercore += "True," + "True" + ",Pass," + '\n'
+        cpu_threadpercore += "True,    ," + "True" + ",    ,Pass," + '\n'
     else:
-        cpu_threadpercore += "False," + "True"+ ",Failed," + '\n'
+        cpu_threadpercore += "False,    ," + "True"+ ",    ,Failed," + '\n'
 
     L1_cache = "L1 cache(K)," + check_parallel(local_cache_size,std_cache_size)
     L2_cache = "L2 cache(K)," + check_parallel(local_cache_size,std_cache_size)
@@ -289,14 +285,12 @@ def advanced_info_print(i):
     #gpu_bus_id = "bus_id," + concatelist(bus_id)
     #fout.write(gpu_bus_id)
 #    gpu_version = "driver/runtime version," + concatelist(driver_runtime_version)
-    gpu_version = "CUDA version," + \
-                  check(driver_runtime_version, check_driver_runtime_version)
-    fout.write(gpu_version)
+
     # gpu_cap_version = "capability version," + \
     #                   check(capability_M_version, check_capability_M_version)
     # fout.write(gpu_cap_version)
     gpu_memory = "memory size(GB)," + \
-                 check_bw_flops(memory_size, check_memory_size)
+                 check(memory_size, check_memory_size)
     fout.write(gpu_memory)
     gpu_core = "cuda core(s)," + \
                check(cuda_cores, check_cuda_cores)
