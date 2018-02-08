@@ -1,6 +1,6 @@
 #备注
 
-machine serial number:主板编码
+Serial number:主板编码 sudo dmidecode -s baseboard-serial-number 可得到
 
 CPU physical number:有几个CPU
 

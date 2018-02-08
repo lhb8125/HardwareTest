@@ -8,7 +8,17 @@ import os
 from sets import Set
 import sys,commands,decimal,time
 
-password = 'tusimple2017'
+password = ''
+def profile_bioslog(filename):
+    fopen = open(filename, 'r')
+    lines = fopen.readlines()
+    for cnt in range(len(lines)):
+        if "Version" in lines[cnt]:
+            biosinfo_list.append(lines[cnt].split(":")[-1].strip())#第一个检测到
+        if "Release Date" in lines[cnt]:
+            biosinfo_list.append(lines[cnt].split(":")[-1].strip())#第二个检测到
+
+
 
 def profile_gpulog(filename):
     fopen = open(filename, 'r')
@@ -101,11 +111,11 @@ def profile_cpulog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Model name" in lines[cnt]:
-            cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
+            cpuinfo_list.append(lines[cnt].split(":")[-1].strip())#第三个
         if "CPU(s):" in lines[cnt]:
-            cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
+            cpuinfo_list.append(lines[cnt].split(":")[-1].strip())#第一个
         if "Thread(s) per core" in lines[cnt]:
-            cpuinfo_list.append(lines[cnt].split(":")[-1].strip())
+            cpuinfo_list.append(lines[cnt].split(":")[-1].strip())#第二个
         if "L1d cache" in lines[cnt]:
             local_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
         if "L2 cache" in lines[cnt]:
@@ -121,6 +131,8 @@ def check_cpulog(filename):
     global cpu_model_name
     global std_os_version
     global std_cpu_number
+    global error_range
+    global password
     for cnt in range(len(lines)):
         if "Model name" in lines[cnt]:
             cpu_model_name.add(lines[cnt].split(":")[-1].strip())
@@ -140,6 +152,8 @@ def check_cpulog(filename):
             std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
         if "error_range" in lines[cnt]:
             error_range = float(lines[cnt].split(":")[-1].strip())
+        if "system root password" in lines[cnt]:
+            password = lines[cnt].split(":")[-1].strip()
     fopen.close()
 
 
@@ -155,9 +169,9 @@ def check(sample,standard):
     flag = True
     if(len(sample) > 0):
         if(sample[0] == standard[0]):
-            res = res + sample[0]+","+standard[0]+",Pass,"
+            res = res + str(sample[0])+","+str(standard[0])+",Pass,"
         else:
-            res = res + sample[0]+","+standard[0]+",Failed,"
+            res = res + str(sample[0])+","+str(standard[0])+",Failed,"
             flag = False
 
         del sample[0]
@@ -187,7 +201,7 @@ def check_bw_flops(sample,standard):
         if((float(standard[0]) - float(sample[0]))/float(standard[0]) < error_range):
             res = res + sample[0] + "," + str(round(float(standard[0]) * (1 - error_range),3)) +"~"+str(round(float(standard[0]) * (1 + error_range),3))+ ",Pass,"
         else:
-            res = res + sample[0] + "," + standard[0] + ",Failed,"
+            res = res + sample[0] + "," + str(round(float(standard[0]) * (1 - error_range),3)) +"~"+str(round(float(standard[0]) * (1 + error_range),3)) + ",Failed,"
 
         del sample[0]
     res = res + "\n"
@@ -197,11 +211,16 @@ def check_bw_flops(sample,standard):
 
 def base_info_print():
     fout = open("out.csv", 'w')
-    fout.write("测试项目,测试值,标准值,通过/失败\n")
+    fout.write("Basic info,\n")
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command).split("\n")[0].strip()
-    fout.write("Motherboard serial number,"+serial_number+"\n")
+    fout.write("Serial number,"+serial_number+"\n")
+    fout.write("BIOS Version : {}".format(biosinfo_list[0]))
+    fout.write("Release Date : {}".format(biosinfo_list[1]))
+
+#----------------------------CPU BASIC TEST---------------------------------------------#
+    fout.write("测试项目,测试值,标准值,通过/失败\n\n")
     fout.write("OS version," + op_release_info +","+std_os_version)
     if(op_release_info == std_os_version):
         fout.write(",Pass\n")
@@ -305,29 +324,6 @@ def advanced_info_print(i):
 
     fout.close()
 
-def get_cpu_frequency():
-    command = 'cat /proc/cpuinfo | grep MHz'
-    raw_frequency = commands.getoutput(command).split("\n")
-    frequency = []
-    for i in raw_frequency:
-        f = i.split(":")[-1].strip()
-        frequency.append(int(f[:4]))
-    return frequency
-
-def stress_test():
-    fout = open("out.csv", 'a')
-    standard = get_cpu_frequency()
-    fout.write("CPU stress test,Standard : {},".format(standard[0]))
-    for i in range(10):
-        tmp = get_cpu_frequency()
-        for j in range(len(tmp)):
-            if(tmp[j] != standard[j]):
-                fout.write("Failed")
-                return 0
-        time.sleep(1)
-    fout.write("Pass")
-    return 1
-
 
 
 if __name__ == "__main__":
@@ -339,6 +335,7 @@ if __name__ == "__main__":
 # cpu and mainboard
     error_range = 0 #误差范围
     cpuinfo_list = []
+    biosinfo_list = []
     check_cpuinfo_list = []
     std_cache_size = []
     local_cache_size = []
@@ -346,7 +343,11 @@ if __name__ == "__main__":
     std_cpu_number = 0
     std_os_version = ""
     os.system("lscpu > log_cpu")
+    os.system("cat /proc/cpuinfo > log_cpu_detail")
+    bios_command = 'echo ' + password + ' | sudo -S dmidecode -t bios > log_bios'
+    os.system(bios_command)
     profile_cpulog("log_cpu")
+    profile_bioslog("log_bios")
     check_cpulog('./standard_info')
 # gpu
 #------------------GPU:BASIC INFORMATION------------------#
