@@ -219,7 +219,12 @@ def check_bw_flops(sample,standard):
     res = res + "\n"
     return res
 
-
+def get_GPU_UUID():
+    raw_UUID = commands.getoutput("nvidia-smi -q | grep \"GPU UUID\"").split("\n")
+    UUID = []
+    for i in raw_UUID:
+        UUID.append(i.split(":")[-1].strip())
+    return UUID
 
 def base_info_print():
     fout = open("out.csv", 'w')
@@ -228,7 +233,11 @@ def base_info_print():
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command).split("\n")[0].strip()
-    fout.write("Serial number,"+serial_number+"\n")
+    fout.write("Baseboard serial number,"+serial_number+"\n")
+    CPU_id = commands.getoutput('echo ' + password + ' | sudo -S dmidecode -t processor | grep ID').split(":")[-1]
+    fout.write("CPU serial number,"+CPU_id+"\n")
+    NVIDIA_driver_version = commands.getoutput("cat /proc/driver/nvidia/version | grep Module").split(" ")[6]
+    fout.write("NVIDIA DRIVER Version : {}\n".format(NVIDIA_driver_version))
     fout.write("BIOS Version : {}\n".format(biosinfo_list[0]))
     fout.write("Release Date : {}\n\n".format(biosinfo_list[1]))
 
@@ -292,7 +301,7 @@ def advanced_info_print(i):
     fout = open("out.csv", 'a')
 
 #-------------------------------OUTPUT GPU-------------------------------#
-    fout.write("gpu Device{},\n".format(str(i)))
+    fout.write("gpu Device {}, UUID : {}\n".format(str(i),GPU_UUID[i]))
     # fout.write(gpu_name[i].split(':')[-1] + "\n")
     #gpu_bus_id = "bus_id," + concatelist(bus_id)
     #fout.write(gpu_bus_id)
@@ -396,7 +405,7 @@ if __name__ == "__main__":
     os.system(CUDASAMPLES + "/1_Utilities/bandwidthTest/bandwidthTest -device=all > log_bandwidth_all")
     profile_bandwidthlog("./log_bandwidth_all")
     check_bandwidthlog("./standard_info")
-
+    GPU_UUID = get_GPU_UUID()
 #-----------------------BANDWIDTH END-------------------------#
 
 #-----------------------GPU:GFLOPS------------------------#
