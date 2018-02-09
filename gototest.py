@@ -34,8 +34,6 @@ def profile_gpulog(filename):
             cuda_cores.append(lines[cnt].split(":")[-1].strip()[0:4])
         if "GPU Max Clock rate" in lines[cnt]:
             gpu_mainclock.append(str(round(float(lines[cnt].split(":")[-1].strip()[0:4]) / 1024.0,1)))
-        if "GeForce" in lines[cnt] and "Device" in lines[cnt] and len(lines[cnt]) < 35:
-            gpu_name.append(lines[cnt].split("Version")[-1].strip())
         # if "Memory Bus Width" in lines[cnt]:
         #     memory_bus_w.append(lines[cnt].split(":")[-1].strip())
 
@@ -226,67 +224,91 @@ def get_GPU_UUID():
         UUID.append(i.split(":")[-1].strip())
     return UUID
 
+def get_GPU_name():
+    raw_name = commands.getoutput("nvidia-smi -q | grep \"Product Name\"").split("\n")
+    name = []
+    for i in raw_name:
+        name.append(i.split(":")[-1].strip())
+    return name
+
+#除去list中所有的空值，因为在parse shell命令输出结果split(" ")后会出现空值
+def remove_null(list):
+    ret = []
+    for i in list:
+        if(i != ''):
+            ret.append(i)
+    return ret
+
+#返回本机硬盘大小，单位为GB
+def get_disk_size():
+    raw_disk = commands.getoutput("df -l | grep /dev/sda").split("\n")
+    disk_list = []
+    for i in raw_disk:
+        t = remove_null(i.split(" "))
+        disk_list.append(int(t[1]))
+    return round(sum(disk_list)/1048576.0,2)
+
+
 def base_info_print():
     fout = open("out.csv", 'w')
-    fout.write("Basic info,\n")
-    fout.write("本报告测试时间 : {}\n".format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))))
+    fout.write("本报告测试时间 , {}\n\n".format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))))
+    fout.write("System & Environment,\n\n")
+
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command).split("\n")[0].strip()
     fout.write("Baseboard serial number,"+serial_number+"\n")
-    CPU_id = commands.getoutput('echo ' + password + ' | sudo -S dmidecode -t processor | grep ID').split(":")[-1]
-    fout.write("CPU serial number,"+CPU_id+"\n")
-    NVIDIA_driver_version = commands.getoutput("cat /proc/driver/nvidia/version | grep Module").split(" ")[6]
-    fout.write("NVIDIA DRIVER Version : {}\n".format(NVIDIA_driver_version))
-    fout.write("BIOS Version : {}\n".format(biosinfo_list[0]))
-    fout.write("Release Date : {}\n\n".format(biosinfo_list[1]))
+    # CPU_id = commands.getoutput('echo ' + password + ' | sudo -S dmidecode -t processor | grep ID').split(":")[-1]
+    # fout.write("CPU serial number,"+CPU_id+"\n")
+    disk_id = commands.getoutput('echo ' + password + ' | sudo hdparm -i /dev/sda | grep SerialNo').split("=")[-1].strip()
+    fout.write("Disk serial number," + disk_id + '\n')
+    NVIDIA_driver_version = commands.getoutput("cat /proc/driver/nvidia/version | grep Module").split(" ")[8]
+    fout.write("NVIDIA DRIVER Version, {}\n".format(NVIDIA_driver_version))
+    fout.write("BIOS Version, {}\n".format(biosinfo_list[0]))
+    fout.write("BIOS Release Date, {}\n".format(biosinfo_list[1]))
+    fout.write("OS version(Ubuntu)," + op_release_info + ",\n")
+    fout.write("CUDA version," + driver_runtime_version[0] + ",\n")
+    fout.write("number of CPU," + str(cpu_number) + ",\n")
+    fout.write("number of GPU," + str(device_number) + ",\n")
+    memory = commands.getoutput("cat /proc/meminfo | grep MemTotal").split(":")[-1].strip().split(" ")[0]
+    fout.write("System memory size(GB)," + str(round(int(memory)/1048576.0,2)) +",\n" )
+    disk = get_disk_size()
+    fout.write("System disk size(GB)," + str(disk) + ",\n")
 
-#----------------------------CPU BASIC TEST---------------------------------------------#
-    fout.write("测试项目,测试值,    ,标准值,    ,通过/失败\n\n")
-    fout.write("OS version," + op_release_info +",    ,"+std_os_version)
-    if(op_release_info == std_os_version):
-        fout.write(",    ,Pass\n")
-    else:
-        fout.write(",    ,Failed\n")
-
-    gpu_version = "CUDA version," + \
-                  check(driver_runtime_version, check_driver_runtime_version)
-    fout.write(gpu_version)
-    fout.write("number of CPU," + str(cpu_number) + ",    ," + str(std_cpu_number))
-    if (cpu_number == std_cpu_number):
-        fout.write(",    ,Pass\n")
-    else:
-        fout.write(",    ,Failed\n")
-    fout.write("number of GPU," + str(device_number) +",    ,"+ str(std_device_number))
-    if(device_number == std_device_number):
-        fout.write(",    ,Pass\n")
-    else:
-        fout.write(",    ,Failed\n")
+    disk_io = []
+    fopen = open('fio.log', 'r')
+    lines = fopen.readlines()
+    for cnt in range(len(lines)):
+        if "status group" in lines[cnt]:
+            disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
+    fout.write("Disk read-rand(MB/s),{}\n".format(disk_io[0]))
+    fout.write("Disk read-seq(MB/s),{}\n".format(disk_io[1]))
+    fout.write("Disk write-rand(MB/s),{}\n".format(disk_io[2]))
+    fout.write("Disk write-seq(MB/s),{}\n".format(disk_io[3]))
     fout.write("\n")
-#-------------------------------OUTPUT BASIC END-------------------------------#
-#-------------------------------OUTPUT CPU-------------------------------#
-    fout.write("CPU\n")
     cpu_model = ""
-    for j in range(cpu_number):
+    CPU_Version = commands.getoutput('echo ' + password + ' | sudo -S dmidecode -t processor | grep Version').split(
+        "\n")
+    for j in range(len(CPU_Version)):
         cpu_model += "CPU {} name,".format(j)
-        cpu_tmp_info = cpuinfo_list[2].split(" ")
-        cpu_model += check_one(cpu_tmp_info[3],cpu_model_name)
+        cpu_tmp_info = CPU_Version[j].strip().split(" ")
+        cpu_name = ""
+        for i in cpu_tmp_info:
+            if "-" in i:
+                cpu_name = i
+        cpu_model += cpu_name + ',\n'
 
-    cpu_core = "CPU core(s),"+cpuinfo_list[0]
+    cpu_core = "CPU core(s)," + cpuinfo_list[0] + ",\n"
 
-    if(cpuinfo_list[0] == check_cpuinfo_list[0]):
-        cpu_core += ",    ," + check_cpuinfo_list[0] + ",    ,Pass,"   + '\n'
-    else:
-        cpu_core += ",    ," + check_cpuinfo_list[0] + ",    ,Failed," + '\n'
     cpu_threadpercore = "CPU hyperthreading,"
-    if(cpuinfo_list[1] > 1):
-        cpu_threadpercore += "True,    ," + "True" + ",    ,Pass," + '\n'
+    if (cpuinfo_list[1] > 1):
+        cpu_threadpercore += "True,\n"
     else:
-        cpu_threadpercore += "False,    ," + "True"+ ",    ,Failed," + '\n'
+        cpu_threadpercore += "False,\n"
 
-    L1_cache = "L1 cache(K)," + check_parallel(local_cache_size,std_cache_size)
-    L2_cache = "L2 cache(K)," + check_parallel(local_cache_size,std_cache_size)
-    L3_cache = "L3 cache(K)," + check_parallel(local_cache_size,std_cache_size)
+    L1_cache = "L1 cache(KB)," + local_cache_size[0] + '\n'
+    L2_cache = "L2 cache(KB)," + local_cache_size[1] + '\n'
+    L3_cache = "L3 cache(KB)," + local_cache_size[2] + '\n'
 
     fout.write(cpu_model)
     fout.write(cpu_core)
@@ -295,13 +317,17 @@ def base_info_print():
     fout.write(L2_cache)
     fout.write(L3_cache)
     fout.write("\n")
-#-------------------------------OUTPUT CPU END-------------------------------#
+    fout.write("测试项目,测试值,    ,标准值,    ,通过/失败\n\n")
+
+#-------------------------------OUTPUT BASIC END-------------------------------#
+
 
 def advanced_info_print(i):
     fout = open("out.csv", 'a')
 
 #-------------------------------OUTPUT GPU-------------------------------#
-    fout.write("gpu Device {}, UUID : {}\n".format(str(i),GPU_UUID[i]))
+    fout.write("GPU Device {}, {}\n".format(str(i),gpu_name[i]))
+    fout.write("GPU UUID : {},\n".format(GPU_UUID[i]))
     # fout.write(gpu_name[i].split(':')[-1] + "\n")
     #gpu_bus_id = "bus_id," + concatelist(bus_id)
     #fout.write(gpu_bus_id)
@@ -313,9 +339,6 @@ def advanced_info_print(i):
     gpu_memory = "memory size(GB)," + \
                  check(memory_size, check_memory_size)
     fout.write(gpu_memory)
-    gpu_core = "cuda core(s)," + \
-               check(cuda_cores, check_cuda_cores)
-    fout.write(gpu_core)
     gpu_clock = "main clock(GHz)," + \
                 check(gpu_mainclock, check_gpu_mainclock)
     fout.write(gpu_clock)
@@ -360,8 +383,8 @@ if __name__ == "__main__":
     std_os_version = ""
     os.system("lscpu > log_cpu")
     os.system("cat /proc/cpuinfo > log_cpu_detail")
-    bios_command = 'echo ' + password + ' | sudo -S dmidecode -t bios > log_bios'
-    os.system(bios_command)
+    os.system("sh ./test-disk-io.sh")
+    print("disk io testing is done\n")
     profile_cpulog("log_cpu")
     profile_bioslog("log_bios")
     check_cpulog('./standard_info')
@@ -381,7 +404,7 @@ if __name__ == "__main__":
     check_gpu_mainclock = []
     memory_bus_w = []
     check_memory_bus_w = []
-    gpu_name = []
+    gpu_name = get_GPU_name()
     std_device_number = 0
     os.system(CUDASAMPLES + "/1_Utilities/deviceQuery/deviceQuery > log_gpu")
     profile_gpulog("./log_gpu")
@@ -423,3 +446,5 @@ if __name__ == "__main__":
     base_info_print()
     for i in range(device_number):
         advanced_info_print(i)
+
+    print("--------SUCCESS-------")

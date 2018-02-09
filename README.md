@@ -30,4 +30,5 @@ CPU满载且较高温度下（建议能达到80度左右时）每5秒检测是�
         cat /proc/driver/nvidia/version(查NVIDIA驱动版本)
         
 4.disk : sudo hdparm -t /dev/sda
+         sudo hdparm -i /dev/sda | grep SerialNo(查硬盘ID)
 
