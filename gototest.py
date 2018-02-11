@@ -253,39 +253,28 @@ def base_info_print():
     fout = open("out.csv", 'w')
     fout.write("本报告测试时间 , {}\n\n".format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))))
     fout.write("System & Environment,\n\n")
-
+    fout.write("Ubuntu版本," + op_release_info + ",\n")
+    fout.write("BIOS版本, {}\n".format(biosinfo_list[0]))
+    fout.write("BIOS日期, {}\n".format(biosinfo_list[1]))
+    NVIDIA_driver_version = commands.getoutput("cat /proc/driver/nvidia/version | grep Module").split(" ")[8]
+    fout.write("显卡驱动版本, {}\n".format(NVIDIA_driver_version))
+    fout.write("CUDA版本," + driver_runtime_version[0] + ",\n\n")
 #-------------------------------OUTPUT BASIC-------------------------------#
     command = 'echo ' + password + ' | sudo -S dmidecode -s baseboard-serial-number'
     serial_number = commands.getoutput(command).split("\n")[0].strip()
-    fout.write("Baseboard serial number,"+serial_number+"\n")
+    fout.write("主板 SN,"+serial_number+"\n")
     # CPU_id = commands.getoutput('echo ' + password + ' | sudo -S dmidecode -t processor | grep ID').split(":")[-1]
     # fout.write("CPU serial number,"+CPU_id+"\n")
     disk_id = commands.getoutput('echo ' + password + ' | sudo hdparm -i /dev/sda | grep SerialNo').split("=")[-1].strip()
-    fout.write("Disk serial number," + disk_id + '\n')
-    NVIDIA_driver_version = commands.getoutput("cat /proc/driver/nvidia/version | grep Module").split(" ")[8]
-    fout.write("NVIDIA DRIVER Version, {}\n".format(NVIDIA_driver_version))
-    fout.write("BIOS Version, {}\n".format(biosinfo_list[0]))
-    fout.write("BIOS Release Date, {}\n".format(biosinfo_list[1]))
-    fout.write("OS version(Ubuntu)," + op_release_info + ",\n")
-    fout.write("CUDA version," + driver_runtime_version[0] + ",\n")
-    fout.write("number of CPU," + str(cpu_number) + ",\n")
-    fout.write("number of GPU," + str(device_number) + ",\n")
+    fout.write("硬盘 SN," + disk_id + '\n')
+    fout.write("CPU数量," + str(cpu_number) + ",\n")
+    fout.write("GPU数量," + str(device_number) + ",\n")
     memory = commands.getoutput("cat /proc/meminfo | grep MemTotal").split(":")[-1].strip().split(" ")[0]
-    fout.write("System memory size(GB)," + str(round(int(memory)/1048576.0,2)) +",\n" )
+    fout.write("内存(GB)," + str(round(int(memory)/1048576.0,2)) +",\n" )
     disk = get_disk_size()
-    fout.write("System disk size(GB)," + str(disk) + ",\n")
+    fout.write("硬盘(GB)," + str(disk) + ",\n")
 
-    disk_io = []
-    fopen = open('fio.log', 'r')
-    lines = fopen.readlines()
-    for cnt in range(len(lines)):
-        if "status group" in lines[cnt]:
-            disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
-    fout.write("Disk read-rand(MB/s),{}\n".format(disk_io[0]))
-    fout.write("Disk read-seq(MB/s),{}\n".format(disk_io[1]))
-    fout.write("Disk write-rand(MB/s),{}\n".format(disk_io[2]))
-    fout.write("Disk write-seq(MB/s),{}\n".format(disk_io[3]))
-    fout.write("\n")
+
     cpu_model = ""
     CPU_Version = commands.getoutput('echo ' + password + ' | sudo -S dmidecode -t processor | grep Version').split(
         "\n")
@@ -320,7 +309,19 @@ def base_info_print():
     fout.write("测试项目,测试值,    ,标准值,    ,通过/失败\n\n")
 
 #-------------------------------OUTPUT BASIC END-------------------------------#
-
+def disk_info_print():
+    fout = open('out.csv','a')
+    disk_io = []
+    fopen = open('fio.log', 'r')
+    lines = fopen.readlines()
+    for cnt in range(len(lines)):
+        if "status group" in lines[cnt]:
+            disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
+    fout.write("随机读(MB/s),{}\n".format(disk_io[0]))
+    fout.write("随机写(MB/s),{}\n\n".format(disk_io[2]))
+    fout.write("顺序读(MB/s),{}\n".format(disk_io[1]))
+    fout.write("顺序写(MB/s),{}\n".format(disk_io[3]))
+    fout.write("\n")
 
 def advanced_info_print(i):
     fout = open("out.csv", 'a')
@@ -336,27 +337,29 @@ def advanced_info_print(i):
     # gpu_cap_version = "capability version," + \
     #                   check(capability_M_version, check_capability_M_version)
     # fout.write(gpu_cap_version)
-    gpu_memory = "memory size(GB)," + \
+    gpu_memory = "显存 (GB)," + \
                  check(memory_size, check_memory_size)
     fout.write(gpu_memory)
-    gpu_clock = "main clock(GHz)," + \
+    gpu_clock = "主频(GHz)," + \
                 check(gpu_mainclock, check_gpu_mainclock)
     fout.write(gpu_clock)
     # gpu_mem_bus = "Bus width," + \
     #     check(memory_bus_w,check_memory_bus_w)
     # fout.write(gpu_mem_bus)
+    gpu_h2d = "CPU至GPU(GB/s)," + \
+              check_bw_flops(h2d, check_h2d)
+    fout.write(gpu_h2d)
+    gpu_d2h = "GPU至CPU(GB/s)," + \
+              check_bw_flops(d2h, check_d2h)
+    fout.write(gpu_d2h)
+    gpu_d2d = "内存带宽(GB/s)," + \
+              check_bw_flops(d2d, check_d2d)
+    fout.write(gpu_d2d)
+
     gpu_single_flops = "Single float(TFLOPS)," + \
         check_bw_flops(single_f,check_single_f)
     fout.write(gpu_single_flops)
-    gpu_d2d = "Memory bandwidth(GB/s)," + \
-        check_bw_flops(d2d,check_d2d)
-    fout.write(gpu_d2d)
-    gpu_h2d = "CPU to GPU(GB/s)," + \
-        check_bw_flops(h2d,check_h2d)
-    fout.write(gpu_h2d)
-    gpu_d2h = "GPU to CPU(GB/s)," + \
-        check_bw_flops(d2h,check_d2h)
-    fout.write(gpu_d2h)
+
     fout.write("\n")
 #-------------------------------OUTPUT GPU END-------------------------------#
 
