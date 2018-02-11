@@ -421,6 +421,8 @@ if __name__ == "__main__":
     os.system("cat /proc/cpuinfo > log_cpu_detail")
     os.system("touch test")
     os.system("sh ./test-disk-io.sh")
+    os.system("rm test")
+    #在test上测试硬盘读写，测完后删掉
     print("disk io testing is done\n")
     profile_cpulog("log_cpu")
     profile_bioslog("log_bios")
