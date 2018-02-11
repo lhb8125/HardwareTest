@@ -66,23 +66,61 @@ def profile_bandwidthlog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Host to Device" in lines[cnt]:
-            h2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0 , 1))
+            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0 , 1))
+            h2d.append(left)
+            h2d.append(right)
         if "Device to Host" in lines[cnt]:
-            d2h.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0, 1))
+            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0, 1))
+            d2h.append(left)
+            d2h.append(right)
         if "Device to Device" in lines[cnt]:
-            d2d.append(str(round(float(lines[cnt+3].split()[-1].strip()) / 1024.0,3)))
+            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0, 1))
+            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0, 1))
+            d2d.append(left)
+            d2d.append(right)
     fopen.close()
-
+#之前是标准值上下浮动一个百分比，现在改成写死一个标准范围，考虑到不同的参数浮动范围可能不一样.本函数导入硬盘IO和GPU-CPU带宽标准范围
 def check_bandwidthlog(filename):
     fopen = open(filename, 'r')
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Host to Device" in lines[cnt]:
-            check_h2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0 , 1))
+            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0 , 1))
+            check_h2d.append(left)
+            check_h2d.append(right)
         if "Device to Host" in lines[cnt]:
-            check_d2h.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0, 1))
+            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0, 1))
+            check_d2h.append(left)
+            check_d2h.append(right)
         if "Device to Device" in lines[cnt]:
-            check_d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 3)))
+            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0, 1))
+            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0, 1))
+            check_d2d.append(left)
+            check_d2d.append(right)
+        if "seq read" in lines[cnt]:
+            left = lines[cnt].split(":")[-1].strip().split("-")[0]
+            right = lines[cnt].split(":")[-1].strip().split("-")[1]
+            seq_read.append(left)
+            seq_read.append(right)
+        if "seq write" in lines[cnt]:
+            left = lines[cnt].split(":")[-1].strip().split("-")[0]
+            right = lines[cnt].split(":")[-1].strip().split("-")[1]
+            seq_write.append(left)
+            seq_write.append(right)
+        if "rand read" in lines[cnt]:
+            left = lines[cnt].split(":")[-1].strip().split("-")[0]
+            right = lines[cnt].split(":")[-1].strip().split("-")[1]
+            rand_read.append(left)
+            rand_read.append(right)
+        if "rand write" in lines[cnt]:
+            left = lines[cnt].split(":")[-1].strip().split("-")[0]
+            right = lines[cnt].split(":")[-1].strip().split("-")[1]
+            rand_write.append(left)
+            rand_write.append(right)
     fopen.close()
 
 def profile_flopslog(filename):
@@ -90,8 +128,11 @@ def profile_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            single_f.append(str(round(float(lines[cnt+5].split("=")[-1].strip()) / 1000.0,3)))
-            double_f.append(str(round(float(lines[cnt+10].split("=")[-1].strip()) / 1000.0,3)))
+            left = str(round(float(lines[cnt+5].split("=")[-1].strip().split("-")[0]) / 1000.0,1))
+            right = str(round(float(lines[cnt+5].split("=")[-1].strip().split("-")[1]) / 1000.0,1))
+            single_f.append(left)
+            single_f.append(right)
+            # double_f.append(str(round(float(lines[cnt+10].split("=")[-1].strip()) / 1000.0,3)))
     fopen.close()
 
 def check_flopslog(filename):
@@ -99,8 +140,11 @@ def check_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            check_single_f.append(str(round(float(lines[cnt+1].split("=")[-1].strip()) / 1000.0,3)))
-            check_double_f.append(str(round(float(lines[cnt+2].split("=")[-1].strip()) / 1000.0,3)))
+            left = str(round(float(lines[cnt + 5].split("=")[-1].strip().split("-")[0]) / 1000.0, 1))
+            right = str(round(float(lines[cnt + 5].split("=")[-1].strip().split("-")[1]) / 1000.0, 1))
+            check_single_f.append(left)
+            check_single_f.append(right)
+            # check_double_f.append(str(round(float(lines[cnt+2].split("=")[-1].strip()) / 1000.0,3)))
     fopen.close()
 
 
@@ -129,7 +173,6 @@ def check_cpulog(filename):
     global cpu_model_name
     global std_os_version
     global std_cpu_number
-    global error_range
     global password
     for cnt in range(len(lines)):
         if "Model name" in lines[cnt]:
@@ -148,8 +191,6 @@ def check_cpulog(filename):
             std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
         if "L3 cache" in lines[cnt]:
             std_cache_size.append(lines[cnt].split(":")[-1].strip()[:-1])
-        if "error_range" in lines[cnt]:
-            error_range = float(lines[cnt].split(":")[-1].strip())
         if "system root password" in lines[cnt]:
             password = lines[cnt].split(":")[-1].strip()
     fopen.close()
@@ -205,13 +246,14 @@ def check_parallel(sample,standard):
     res = res + "\n"
     return res
 
+#standard格式是[left,right],表示标准范围的上下限
 def check_bw_flops(sample,standard):
     res = ""
     if(len(sample) > 0 ):
-        if((float(standard[0]) - float(sample[0]))/float(standard[0]) < error_range):
-            res = res + sample[0] + ",    ," + str(round(float(standard[0]) * (1 - error_range),1)) +"~"+str(round(float(standard[0]) * (1 + error_range),1))+ ",    ,Pass,"
+        if(float(standard[0]) > float(sample[0])):
+            res = res + sample[0] + ",    ," + standard[0] +"~"+standard[1]+ ",    ,Pass,"
         else:
-            res = res + sample[0] + ",    ," + str(round(float(standard[0]) * (1 - error_range),1)) +"~"+str(round(float(standard[0]) * (1 + error_range),1)) + ",    ,Failed,"
+            res = res + sample[0] + ",    ," + standard[0] +"~"+standard[1]+ ",    ,Failed,"
 
         del sample[0]
     res = res + "\n"
@@ -317,10 +359,10 @@ def disk_info_print():
     for cnt in range(len(lines)):
         if "status group" in lines[cnt]:
             disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
-    fout.write("Random read(MB/s),{}\n".format(disk_io[0]))
-    fout.write("Random write(MB/s),{}\n\n".format(disk_io[2]))
-    fout.write("Seq read(MB/s),{}\n".format(disk_io[1]))
-    fout.write("Seq write(MB/s),{}\n".format(disk_io[3]))
+    fout.write("Random read(MB/s)," + check_bw_flops(disk_io,rand_read))
+    fout.write("Random write(MB/s)," + check_bw_flops(disk_io,rand_write))
+    fout.write("Seq read(MB/s)," + check_bw_flops(disk_io, seq_read))
+    fout.write("Seq write(MB/s)," + check_bw_flops(disk_io,rand_read))
     fout.write("\n")
 
 def advanced_info_print(i):
@@ -374,7 +416,7 @@ if __name__ == "__main__":
     operation_info = commands.getoutput("lsb_release -a")
     op_release_info = operation_info.split("\n")[2].split(":")[-1].split(" ")[1]
 # cpu and mainboard
-    error_range = 0 #误差范围
+
     serial_number = {}#cpu,gpu,memory,disk等的ID
     cpuinfo_list = []
     biosinfo_list = []
@@ -423,6 +465,11 @@ if __name__ == "__main__":
     check_h2d = []
     check_d2h = []
     check_d2d = []
+    # disk IO standard
+    rand_write = []
+    rand_read = []
+    seq_write = []
+    seq_read = []
     # for each device
     for n in range(device_number):
         os.system(CUDASAMPLES + "/1_Utilities/bandwidthTest/bandwidthTest -device=" + str(n) + " > log_bandwidth_"+str(n))
@@ -446,6 +493,9 @@ if __name__ == "__main__":
         check_flopslog("./standard_info")
 
 #-----------------------GFLOPS END------------------------#
+
+
+
     base_info_print()
     for i in range(device_number):
         advanced_info_print(i)

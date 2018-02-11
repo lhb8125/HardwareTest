@@ -2,7 +2,6 @@
 #error range 是可以容忍的误差范围，0.1即为标准值上下浮动10%
 #系统root密码默认为tusimple2017
 
-error_range : 0.12
 system root password : tusimple2017
 OS Version : Ubuntu 16.04.3 LTS
 
@@ -22,18 +21,18 @@ L3 cache:              35840K
  Host to Device Bandwidth, 1 Device(s)
  PINNED Memory Transfers
    Transfer Size (Bytes)	Bandwidth(MB/s)
-   33554432			6272.2
+   33554432			5500-7000
 
  Device to Host Bandwidth, 1 Device(s)
  PINNED Memory Transfers
    Transfer Size (Bytes)	Bandwidth(MB/s)
-   33554432			6406.2
+   33554432			5500-7000
 
 #GTX 1080 memory bandwidth 官方说的320G/s 但目前测的都只有220G出头
  Device to Device Bandwidth, 1 Device(s)
  PINNED Memory Transfers
    Transfer Size (Bytes)	Bandwidth(MB/s)
-   33554432			232486.5
+   33554432			200000-250000
 
 ####GPU standard config####
 
@@ -47,6 +46,12 @@ GPU Max Clock rate:                            1734 MHz (1.73 GHz)
 ####Flop standard config####
 
  ==== Running N=10 batched ====
-Single float :  GFLOPS=7162.38
-Double float :  GFLOPS=249.151
+Single float(GFLOPS): 7.0-8.5
+
+#####Disk benchmark(MB/S)#####
+
+rand read : 300-400
+rand write : 300-400
+seq read : 500-600
+seq write : 500-600
 
