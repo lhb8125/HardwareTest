@@ -449,5 +449,6 @@ if __name__ == "__main__":
     base_info_print()
     for i in range(device_number):
         advanced_info_print(i)
+    disk_info_print()
 
     print("--------SUCCESS-------")
