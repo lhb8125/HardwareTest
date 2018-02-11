@@ -50,8 +50,8 @@ Single float(GFLOPS): 7.0-8.5
 
 #####Disk benchmark(MB/S)#####
 
-rand read : 300-400
-rand write : 300-400
-seq read : 500-600
-seq write : 500-600
+rand read : 250-400
+rand write : 250-400
+seq read : 450-600
+seq write : 450-600
 

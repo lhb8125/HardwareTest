@@ -66,20 +66,11 @@ def profile_bandwidthlog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Host to Device" in lines[cnt]:
-            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0 , 1))
-            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0 , 1))
-            h2d.append(left)
-            h2d.append(right)
+            h2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 2)))
         if "Device to Host" in lines[cnt]:
-            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0, 1))
-            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0, 1))
-            d2h.append(left)
-            d2h.append(right)
+            d2h.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 2)))
         if "Device to Device" in lines[cnt]:
-            left = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[0]) / 1024.0, 1))
-            right = str(round(float(lines[cnt + 3].split()[-1].strip().split("-")[1]) / 1024.0, 1))
-            d2d.append(left)
-            d2d.append(right)
+            d2d.append(str(round(float(lines[cnt + 3].split()[-1].strip()) / 1024.0, 2)))
     fopen.close()
 #之前是标准值上下浮动一个百分比，现在改成写死一个标准范围，考虑到不同的参数浮动范围可能不一样.本函数导入硬盘IO和GPU-CPU带宽标准范围
 def check_bandwidthlog(filename):
@@ -428,6 +419,7 @@ if __name__ == "__main__":
     std_os_version = ""
     os.system("lscpu > log_cpu")
     os.system("cat /proc/cpuinfo > log_cpu_detail")
+    os.system("touch test")
     os.system("sh ./test-disk-io.sh")
     print("disk io testing is done\n")
     profile_cpulog("log_cpu")
