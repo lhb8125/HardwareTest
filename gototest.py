@@ -119,7 +119,7 @@ def profile_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            single_f.append(str(round(float(lines[cnt+5].split("=")[-1].strip().split("-")[0]) / 1000.0,1)))
+            single_f.append(str(round(float(lines[cnt+5].split("=")[-1].strip().split("-")[0].strip()) / 1000.0,1)))
             # double_f.append(str(round(float(lines[cnt+10].split("=")[-1].strip()) / 1000.0,3)))
     fopen.close()
 
@@ -128,8 +128,8 @@ def check_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            left = str(round(float(lines[cnt + 5].split("=")[-1].strip().split("-")[0]) / 1000.0, 1))
-            right = str(round(float(lines[cnt + 5].split("=")[-1].strip().split("-")[1]) / 1000.0, 1))
+            left = str(round(float(lines[cnt + 1].split(":")[-1].strip().split("-")[0].strip()) / 1000.0, 1))
+            right = str(round(float(lines[cnt + 1].split(":")[-1].strip().split("-")[1].strip()) / 1000.0, 1))
             check_single_f.append(left)
             check_single_f.append(right)
             # check_double_f.append(str(round(float(lines[cnt+2].split("=")[-1].strip()) / 1000.0,3)))
@@ -238,10 +238,10 @@ def check_parallel(sample,standard):
 def check_bw_flops(sample,standard):
     res = ""
     if(len(sample) > 0 ):
-        if(float(standard[0]) > float(sample[0])):
-            res = res + sample[0] + ",    ," + standard[0] +"~"+standard[1]+ ",    ,Pass,"
+        if(float(standard[0]) < float(sample[0])):
+            res = res + str(sample[0]) + ",    ," + str(standard[0]) +"~"+str(standard[1])+ ",    ,Pass,"
         else:
-            res = res + sample[0] + ",    ," + standard[0] +"~"+standard[1]+ ",    ,Failed,"
+            res = res + str(sample[0]) + ",    ," + str(standard[0]) +"~"+str(standard[1])+ ",    ,Failed,"
 
         del sample[0]
     res = res + "\n"
