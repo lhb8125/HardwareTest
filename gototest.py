@@ -119,10 +119,7 @@ def profile_flopslog(filename):
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "Running N=10 batched" in lines[cnt]:
-            left = str(round(float(lines[cnt+5].split("=")[-1].strip().split("-")[0]) / 1000.0,1))
-            right = str(round(float(lines[cnt+5].split("=")[-1].strip().split("-")[1]) / 1000.0,1))
-            single_f.append(left)
-            single_f.append(right)
+            single_f.append(str(round(float(lines[cnt+5].split("=")[-1].strip().split("-")[0]) / 1000.0,1)))
             # double_f.append(str(round(float(lines[cnt+10].split("=")[-1].strip()) / 1000.0,3)))
     fopen.close()
 
