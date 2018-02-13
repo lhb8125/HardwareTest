@@ -325,9 +325,9 @@ def base_info_print():
     else:
         cpu_threadpercore += "False,\n"
 
-    L1_cache = "L1 cache(KB)," + local_cache_size[0] + '\n'
-    L2_cache = "L2 cache(KB)," + local_cache_size[1] + '\n'
-    L3_cache = "L3 cache(KB)," + local_cache_size[2] + '\n'
+    L1_cache = "L1 cache(KB) Private," + local_cache_size[0] + '\n'
+    L2_cache = "L2 cache(KB) Private," + local_cache_size[1] + '\n'
+    L3_cache = "L3 cache(KB) Shared," + local_cache_size[2] + '\n'
 
     fout.write(cpu_model)
     fout.write(cpu_core)
@@ -350,7 +350,7 @@ def disk_info_print():
     fout.write("Random read(MB/s)," + check_bw_flops(disk_io,rand_read))
     fout.write("Random write(MB/s)," + check_bw_flops(disk_io,rand_write))
     fout.write("Seq read(MB/s)," + check_bw_flops(disk_io, seq_read))
-    fout.write("Seq write(MB/s)," + check_bw_flops(disk_io,rand_read))
+    fout.write("Seq write(MB/s)," + check_bw_flops(disk_io,seq_write))
     fout.write("\n")
 
 def advanced_info_print(i):
