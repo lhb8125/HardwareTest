@@ -14,7 +14,7 @@
 5.输入命令：sudo sh test-temperature-3.sh 回车
 6.输入命令：sudo sh test-temperature-4.sh 回车
 7.测试结果保存在temperature_*.csv文件中，双击打开即可
-8.CPU压力测试脚本运行：sudo sh test-disk-io.sh 回车
+8.CPU压力测试脚本运行：sudo sh test-cpu-temperature.sh 回车
 
 万兆网测试说明：
 1.配IP地址
