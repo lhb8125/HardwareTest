@@ -44,6 +44,7 @@ GPU Max Clock rate:                            1734 MHz (1.73 GHz)
 ####Flop standard config####
 
  ==== Running N=10 batched ====
+
 Single float(GFLOPS): 7.0-8.5
 
 #####Disk benchmark(MB/S)##### 记得修改标准范围的时候带上小数点，否则读入时会出现bug

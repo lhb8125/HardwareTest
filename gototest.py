@@ -128,9 +128,9 @@ def check_flopslog(filename):
     fopen = open(filename, 'r')
     lines = fopen.readlines()
     for cnt in range(len(lines)):
-        if "Running N=10 batched" in lines[cnt]:
-            left = str(round(float(lines[cnt + 1].split(":")[-1].strip().split("-")[0].strip()) / 1000.0, 1))
-            right = str(round(float(lines[cnt + 1].split(":")[-1].strip().split("-")[1].strip()) / 1000.0, 1))
+        if "Single float" in lines[cnt]:
+            left = str(round(float(lines[cnt].split(":")[-1].strip().split("-")[0].strip()) / 1000.0, 1))
+            right = str(round(float(lines[cnt].split(":")[-1].strip().split("-")[1].strip()) / 1000.0, 1))
             check_single_f.append(left)
             check_single_f.append(right)
             # check_double_f.append(str(round(float(lines[cnt+2].split("=")[-1].strip()) / 1000.0,3)))
@@ -248,6 +248,12 @@ def check_bw_flops(sample,standard):
     res = res + "\n"
     return res
 
+#因为gpu-cpu带宽前两个是×8，后两个是×16，该函数用来改此处的standard
+def double_array(array):
+    tmp = [i * 2 for i in array]
+    return tmp
+
+
 def get_GPU_UUID():
     raw_UUID = commands.getoutput("nvidia-smi -q | grep \"GPU UUID\"").split("\n")
     UUID = []
@@ -278,6 +284,20 @@ def get_disk_size():
         t = remove_null(i.split(" "))
         disk_list.append(int(t[1]))
     return round(sum(disk_list)/1048576.0,2)
+
+def disk_info_print():
+    fout = open(out_filename,'a')
+    disk_io = []
+    fopen = open('fio.log', 'r')
+    lines = fopen.readlines()
+    for cnt in range(len(lines)):
+        if "status group" in lines[cnt]:
+            disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
+    fout.write("Random read(MB/s),\n")
+    fout.write("Random write(MB/s),\n")
+    fout.write("Seq read(MB/s),\n")
+    fout.write("Seq write(MB/s),\n")
+    fout.write("\n")
 
 
 def base_info_print():
@@ -337,22 +357,10 @@ def base_info_print():
     fout.write(L2_cache)
     fout.write(L3_cache)
     fout.write("\n")
+    disk_info_print()
     fout.write("Items,Test result,    ,Standard result,    ,Pass/Fail\n\n")
 
 #-------------------------------OUTPUT BASIC END-------------------------------#
-def disk_info_print():
-    fout = open(out_filename,'a')
-    disk_io = []
-    fopen = open('fio.log', 'r')
-    lines = fopen.readlines()
-    for cnt in range(len(lines)):
-        if "status group" in lines[cnt]:
-            disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
-    fout.write("Random read(MB/s),\n")
-    fout.write("Random write(MB/s),\n")
-    fout.write("Seq read(MB/s),\n")
-    fout.write("Seq write(MB/s),\n")
-    fout.write("\n")
 
 def advanced_info_print(i):
     fout = open(out_filename, 'a')
@@ -377,12 +385,20 @@ def advanced_info_print(i):
     # gpu_mem_bus = "Bus width," + \
     #     check(memory_bus_w,check_memory_bus_w)
     # fout.write(gpu_mem_bus)
-    gpu_h2d = "CPU to GPU(GB/s)," + \
-              check_bw_flops(h2d, check_h2d)
-    fout.write(gpu_h2d)
-    gpu_d2h = "GPU to CPU(GB/s)," + \
-              check_bw_flops(d2h, check_d2h)
-    fout.write(gpu_d2h)
+    if(i == 0 or i == 1):
+        gpu_h2d = "CPU to GPU(GB/s)," + \
+                  check_bw_flops(h2d, check_h2d)
+        fout.write(gpu_h2d)
+        gpu_d2h = "GPU to CPU(GB/s)," + \
+                  check_bw_flops(d2h, check_d2h)
+        fout.write(gpu_d2h)
+    else:
+        gpu_h2d = "CPU to GPU(GB/s)," + \
+                  check_bw_flops(h2d, double_array(check_h2d))
+        fout.write(gpu_h2d)
+        gpu_d2h = "GPU to CPU(GB/s)," + \
+                  check_bw_flops(d2h, double_array(check_d2h))
+        fout.write(gpu_d2h)
     gpu_d2d = "Memory bandwidth(GB/s)," + \
               check_bw_flops(d2d, check_d2d)
     fout.write(gpu_d2d)
@@ -489,7 +505,6 @@ if __name__ == "__main__":
 
 
     base_info_print()
-    disk_info_print()
     for i in range(device_number):
         advanced_info_print(i)
 
