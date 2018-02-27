@@ -29,7 +29,7 @@ for i in range(5000):
     temperature = get_cpu_temperature()
     print("CPU frequency(MHz) : {} , temperature(Celsius) : {}\n ".format(frequency,temperature))
     if(i % 20 == 0):
-        os.system("echo \"CPU fre quency(MHz) : {} , temperature(Celsius) : {}\n\" >> stress_test_log.txt".format(frequency,temperature))
+        os.system("echo \"CPU fre quency(MHz) : {} , temperature(Celsius) : {}\n\" >> ./result/cpu_stress_test_log.txt".format(frequency,temperature))
     time.sleep(10)
 
 

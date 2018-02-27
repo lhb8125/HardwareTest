@@ -8,7 +8,7 @@ import os
 from sets import Set
 import sys,commands,decimal,time
 
-out_filename = 'result_{}.csv'.format(time.strftime('%Y-%m-%d_%H-%M-%S',time.localtime(time.time())))
+out_filename = './result/result_{}.csv'.format(time.strftime('%Y-%m-%d_%H-%M-%S',time.localtime(time.time())))
 password = ''
 def profile_bioslog(filename):
     fopen = open(filename, 'r')
