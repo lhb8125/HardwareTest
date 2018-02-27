@@ -38,9 +38,7 @@ L3 cache:              35840K
 
 GPU Device Number : 4
 CUDA Driver Version / Runtime Version          9.1 / 8.0
-CUDA Capability Major/Minor version number:    6.1
 Total amount of global memory:                 8112 MBytes (8506048512 bytes)
-(20) Multiprocessors, (128) CUDA Cores/MP:     2560 CUDA Cores
 GPU Max Clock rate:                            1734 MHz (1.73 GHz)
 
 ####Flop standard config####
