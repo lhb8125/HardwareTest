@@ -8,7 +8,7 @@ import os
 from sets import Set
 import sys,commands,decimal,time
 
-out_filename = 'result_{}.csv'.format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+out_filename = 'result_{}.csv'.format(time.strftime('%Y-%m-%d_%H-%M-%S',time.localtime(time.time())))
 password = ''
 def profile_bioslog(filename):
     fopen = open(filename, 'r')
@@ -293,10 +293,10 @@ def disk_info_print():
     for cnt in range(len(lines)):
         if "status group" in lines[cnt]:
             disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
-    fout.write("Random read(MB/s),\n")
-    fout.write("Random write(MB/s),\n")
-    fout.write("Seq read(MB/s),\n")
-    fout.write("Seq write(MB/s),\n")
+    fout.write("Random read(MB/s),{}\n".format(disk_io[0]))
+    fout.write("Random write(MB/s),{}\n".format(disk_io[1]))
+    fout.write("Seq read(MB/s),{}\n".format(disk_io[2]))
+    fout.write("Seq write(MB/s),{}\n".format(disk_io[3]))
     fout.write("\n")
 
 
