@@ -50,6 +50,6 @@ Single float(GFLOPS): 7.0-8.5
 
 rand read : 250.0-450.0
 rand write : 250.0-450.0
-seq read : 400.0-600.0
-seq write : 400.0-600.0
+seq read : 350.0-600.0
+seq write : 350.0-600.0
 
