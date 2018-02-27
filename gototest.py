@@ -128,9 +128,9 @@ def check_flopslog(filename):
     fopen = open(filename, 'r')
     lines = fopen.readlines()
     for cnt in range(len(lines)):
-        if "Single float" in lines[cnt]:
-            left = str(round(float(lines[cnt].split(":")[-1].strip().split("-")[0].strip()) / 1000.0, 1))
-            right = str(round(float(lines[cnt].split(":")[-1].strip().split("-")[1].strip()) / 1000.0, 1))
+        if "GFLOPS" in lines[cnt]:
+            left = lines[cnt].split(":")[-1].strip().split("-")[0].strip()
+            right = lines[cnt].split(":")[-1].strip().split("-")[1].strip()
             check_single_f.append(left)
             check_single_f.append(right)
             # check_double_f.append(str(round(float(lines[cnt+2].split("=")[-1].strip()) / 1000.0,3)))
@@ -250,7 +250,7 @@ def check_bw_flops(sample,standard):
 
 #因为gpu-cpu带宽前两个是×8，后两个是×16，该函数用来改此处的standard
 def double_array(array):
-    tmp = [i * 2 for i in array]
+    tmp = [str(float(i) * 2) for i in array]
     return tmp
 
 
