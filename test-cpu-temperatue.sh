@@ -4,4 +4,4 @@
 pip install --upgrade pip
 pip install numpy > /dev/null
 sudo -S apt-get install -y lm-sensors > /dev/null & /
-python matmul.py 10 & python cpu_frequency.py
+python matmul.py 200 & python cpu_frequency.py
