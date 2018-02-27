@@ -8,6 +8,7 @@ import os
 from sets import Set
 import sys,commands,decimal,time
 
+out_filename = 'result_{}.csv'.format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
 password = ''
 def profile_bioslog(filename):
     fopen = open(filename, 'r')
@@ -238,7 +239,7 @@ def check_parallel(sample,standard):
 def check_bw_flops(sample,standard):
     res = ""
     if(len(sample) > 0 ):
-        if(float(standard[0]) < float(sample[0])):
+        if(float(standard[0]) < float(sample[0]) and float(standard[1]) > float(sample[0])):
             res = res + str(sample[0]) + ",    ," + str(standard[0]) +"~"+str(standard[1])+ ",    ,Pass,"
         else:
             res = res + str(sample[0]) + ",    ," + str(standard[0]) +"~"+str(standard[1])+ ",    ,Failed,"
@@ -280,7 +281,7 @@ def get_disk_size():
 
 
 def base_info_print():
-    fout = open("out.csv", 'w')
+    fout = open(out_filename, 'w')
     fout.write("Testing Date , {}\n\n".format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))))
     fout.write("System & Environment,\n\n")
     fout.write("Ubuntu Version," + op_release_info + ",\n")
@@ -340,21 +341,21 @@ def base_info_print():
 
 #-------------------------------OUTPUT BASIC END-------------------------------#
 def disk_info_print():
-    fout = open('out.csv','a')
+    fout = open(out_filename,'a')
     disk_io = []
     fopen = open('fio.log', 'r')
     lines = fopen.readlines()
     for cnt in range(len(lines)):
         if "status group" in lines[cnt]:
             disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
-    fout.write("Random read(MB/s)," + check_bw_flops(disk_io,rand_read))
-    fout.write("Random write(MB/s)," + check_bw_flops(disk_io,rand_write))
-    fout.write("Seq read(MB/s)," + check_bw_flops(disk_io, seq_read))
-    fout.write("Seq write(MB/s)," + check_bw_flops(disk_io,seq_write))
+    fout.write("Random read(MB/s),\n")
+    fout.write("Random write(MB/s),\n")
+    fout.write("Seq read(MB/s),\n")
+    fout.write("Seq write(MB/s),\n")
     fout.write("\n")
 
 def advanced_info_print(i):
-    fout = open("out.csv", 'a')
+    fout = open(out_filename, 'a')
 
 #-------------------------------OUTPUT GPU-------------------------------#
     fout.write("GPU Device {}, {}\n".format(str(i),gpu_name[i]))
@@ -488,8 +489,9 @@ if __name__ == "__main__":
 
 
     base_info_print()
+    disk_info_print()
     for i in range(device_number):
         advanced_info_print(i)
-    disk_info_print()
+
 
     print("--------SUCCESS-------")
