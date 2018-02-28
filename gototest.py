@@ -285,20 +285,6 @@ def get_disk_size():
         disk_list.append(int(t[1]))
     return round(sum(disk_list)/1048576.0,2)
 
-def disk_info_print():
-    fout = open(out_filename,'a')
-    disk_io = []
-    fopen = open('fio.log', 'r')
-    lines = fopen.readlines()
-    for cnt in range(len(lines)):
-        if "status group" in lines[cnt]:
-            disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
-    fout.write("Random read(MB/s),{}\n".format(disk_io[0]))
-    fout.write("Random write(MB/s),{}\n".format(disk_io[1]))
-    fout.write("Seq read(MB/s),{}\n".format(disk_io[2]))
-    fout.write("Seq write(MB/s),{}\n".format(disk_io[3]))
-    fout.write("\n")
-
 
 def base_info_print():
     fout = open(out_filename, 'w')
@@ -357,7 +343,17 @@ def base_info_print():
     fout.write(L2_cache)
     fout.write(L3_cache)
     fout.write("\n")
-    disk_info_print()
+    disk_io = []
+    fopen = open('fio.log', 'r')
+    lines = fopen.readlines()
+    for cnt in range(len(lines)):
+        if "status group" in lines[cnt]:
+            disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
+    fout.write("Random read(MB/s),{}\n".format(disk_io[0]))
+    fout.write("Random write(MB/s),{}\n".format(disk_io[1]))
+    fout.write("Seq read(MB/s),{}\n".format(disk_io[2]))
+    fout.write("Seq write(MB/s),{}\n".format(disk_io[3]))
+    fout.write("\n")
     fout.write("Items,Test result,    ,Standard result,    ,Pass/Fail\n\n")
 
 #-------------------------------OUTPUT BASIC END-------------------------------#
