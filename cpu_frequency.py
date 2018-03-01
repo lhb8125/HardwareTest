@@ -30,11 +30,11 @@ def get_cpu_temperature():
         count += 1
     return sum/count
 
-for i in range(5000):
+for i in range(60):
     frequency = get_cpu_frequency()
     temperature = get_cpu_temperature()
     print("CPU frequency(GHz) : {} , temperature(Celsius) : {}\n ".format(frequency,temperature))
     os.system("echo \"CPU fre quency(MHz) : {} , temperature(Celsius) : {}\n\" >> ./result/cpu_stress_test_log.txt".format(frequency,temperature))
-    time.sleep(5)
+    time.sleep(1)
 
 

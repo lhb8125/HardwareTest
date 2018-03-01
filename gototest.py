@@ -343,17 +343,7 @@ def base_info_print():
     fout.write(L2_cache)
     fout.write(L3_cache)
     fout.write("\n")
-    disk_io = []
-    fopen = open('fio.log', 'r')
-    lines = fopen.readlines()
-    for cnt in range(len(lines)):
-        if "status group" in lines[cnt]:
-            disk_io.append(int(lines[cnt + 1].split(",")[1].split("=")[-1][:-4]) / 1024)
-    fout.write("Random read(MB/s),{}\n".format(disk_io[0]))
-    fout.write("Random write(MB/s),{}\n".format(disk_io[1]))
-    fout.write("Seq read(MB/s),{}\n".format(disk_io[2]))
-    fout.write("Seq write(MB/s),{}\n".format(disk_io[3]))
-    fout.write("\n")
+
     fout.write("Items,Test result,    ,Standard result,    ,Pass/Fail\n\n")
 
 #-------------------------------OUTPUT BASIC END-------------------------------#
@@ -429,9 +419,7 @@ if __name__ == "__main__":
     std_os_version = ""
     os.system("lscpu > log_cpu")
     os.system("cat /proc/cpuinfo > log_cpu_detail")
-    os.system("touch test")
-    os.system("sh ./test-disk-io.sh")
-    os.system("rm test")
+    os.system("echo tusimple2017 | sudo -S dmidecode -t bios > log_bios")
     #在test上测试硬盘读写，测完后删掉
     print("disk io testing is done\n")
     profile_cpulog("log_cpu")
