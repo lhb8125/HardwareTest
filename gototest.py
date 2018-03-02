@@ -492,5 +492,7 @@ if __name__ == "__main__":
     for i in range(device_number):
         advanced_info_print(i)
 
+    for i in range(device_number):
+        os.system("nvidia-smi -q -i {} > ./result/gpu{}_detail_info.txt".format(i,i))
 
     print("--------SUCCESS-------")
