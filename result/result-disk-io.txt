@@ -1,5 +1,0 @@
-Random read(MB/s),256
-Random write(MB/s),530
-Seq read(MB/s),42
-Seq write(MB/s),498
-

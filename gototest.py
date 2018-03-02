@@ -421,7 +421,6 @@ if __name__ == "__main__":
     os.system("cat /proc/cpuinfo > log_cpu_detail")
     os.system("echo tusimple2017 | sudo -S dmidecode -t bios > log_bios")
     #在test上测试硬盘读写，测完后删掉
-    print("disk io testing is done\n")
     profile_cpulog("log_cpu")
     profile_bioslog("log_bios")
     check_cpulog('./standard_info')
